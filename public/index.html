@@ -1,0 +1,1463 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Brand Voice Generator</title>
+<style>
+  :root {
+    --bg: #faf7f2;
+    --ink: #1a1a1a;
+    --muted: #6b6b66;
+    --line: #e8e2d6;
+    --card: #ffffff;
+    --accent: #c8553d;
+    --accent-soft: #f4e3dd;
+    --chip: #f1ece0;
+    --ok: #3f6b3a;
+    --err: #a33;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--bg); color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    font-size: 15px; line-height: 1.55; }
+  .wrap { max-width: 1100px; margin: 0 auto; padding: 48px 32px 96px; }
+
+  /* Header */
+  header.top { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 0; }
+
+  /* Top-level tabs */
+  .main-tabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+  .main-tab { background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted); padding: 14px 22px; font-size: 14px; font-weight: 500; border-radius: 0; cursor: pointer; transition: color 0.15s; margin-bottom: -1px; }
+  .main-tab:hover:not(.active) { color: var(--ink); background: transparent; border-color: transparent; }
+  .main-tab.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  .main-panel { display: none; }
+  .main-panel.active { display: block; animation: fade 0.2s ease; }
+
+  h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; font-size: 34px; letter-spacing: -0.01em; margin: 0 0 8px; }
+  .sub { color: var(--muted); font-size: 14px; max-width: 680px; }
+
+  /* Controls */
+  .controls { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 24px 28px; margin-bottom: 14px; }
+  .controls-title { font-family: Georgia, serif; font-size: 18px; font-weight: 500; margin: 0 0 20px; }
+  .ctl-row { margin-bottom: 18px; }
+  .ctl-row:last-child { margin-bottom: 0; }
+  .ctl-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 6px; }
+  .ctl-label .opt { text-transform: none; letter-spacing: 0; font-weight: 400; }
+  textarea.ctl-ta { width: 100%; border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px; font: inherit; font-size: 13px; resize: vertical; background: #fcfaf5; line-height: 1.5; }
+  textarea.ctl-ta:focus { outline: none; border-color: var(--accent); }
+  .type-grid { display: flex; flex-wrap: wrap; gap: 8px 20px; }
+  .type-item { display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer; user-select: none; }
+  .type-item input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; }
+  .type-item input[type=text] { border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; font: inherit; font-size: 12px; background: #fcfaf5; width: 150px; }
+  .type-item input[type=text]:focus { outline: none; border-color: var(--accent); }
+  .type-item input[type=text]:disabled { opacity: 0.35; cursor: not-allowed; }
+
+  /* Brand inputs inside controls */
+  .brand-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .brand-row input { flex: 1; min-width: 160px; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font: inherit; font-size: 14px; background: #fcfaf5; }
+  .brand-row input:focus { outline: none; border-color: var(--accent); }
+  .generate-btn-row { margin-top: 20px; display: flex; justify-content: flex-end; }
+  .generate-btn-row button { padding: 11px 28px; font-size: 14px; }
+
+  /* Buttons */
+  button { font: inherit; cursor: pointer; border: 1px solid var(--ink); background: var(--ink); color: #fff; padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 500; transition: background 0.15s, border-color 0.15s; }
+  button:hover:not(:disabled) { background: var(--accent); border-color: var(--accent); }
+  button:disabled { opacity: 0.45; cursor: not-allowed; }
+  button.ghost { background: transparent; color: var(--ink); border-color: var(--line); }
+  button.ghost:hover:not(:disabled) { background: var(--accent-soft); border-color: var(--accent); color: var(--ink); }
+  button.copy { background: transparent; color: var(--muted); border: 1px solid var(--line); padding: 5px 12px; font-size: 12px; border-radius: 6px; }
+  button.copy:hover { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Your brand results panel */
+  .panel { background: var(--card); border: 1px solid var(--line); border-radius: 12px; margin-top: 10px; padding: 24px 28px; display: none; }
+  .panel.open { display: block; animation: fade 0.3s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: none; } }
+
+  /* Brand tab strip */
+  .ex-tabs-bar { display: flex; gap: 0; border-bottom: 1px solid var(--line); padding: 0; overflow-x: auto; margin: 16px -28px 0; padding: 0 28px; }
+  .ex-tab { background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted); padding: 13px 16px; font-size: 13px; font-weight: 500; white-space: nowrap; border-radius: 0; cursor: pointer; transition: color 0.15s; position: relative; margin-bottom: -1px; }
+  .ex-tab:hover:not(.active) { color: var(--ink); background: transparent; border-color: transparent; }
+  .ex-tab.active { color: var(--ink); border-bottom-color: var(--accent); }
+  .ex-tab.generating { color: var(--accent); }
+  .ex-tab.generating::after { content: ""; display: inline-block; width: 6px; height: 6px; border: 1.5px solid var(--accent); border-top-color: transparent; border-radius: 50%; animation: spin 0.8s linear infinite; margin-left: 6px; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Brand panels */
+  .ex-panels-wrap { padding-top: 24px; min-height: 80px; }
+  .ex-panel { display: none; }
+  .ex-panel.active { display: block; animation: fade 0.2s ease; }
+  .not-run { color: var(--muted); font-size: 13px; padding: 20px 0; text-align: center; }
+
+  /* Shared result layout (used in both .panel and .ex-panel) */
+  .panel-hdr { margin-bottom: 20px; }
+  .panel-hdr h3 { font-family: Georgia, serif; font-size: 20px; margin: 0 0 3px; font-weight: 500; }
+  .panel-hdr .ph-meta { font-size: 12px; color: var(--muted); }
+  a.url { color: var(--accent); text-decoration: none; }
+  a.url:hover { text-decoration: underline; }
+
+  /* Tone signature */
+  .tone-section { margin-bottom: 20px; }
+  .sec-label { font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; margin-bottom: 10px; }
+  .tone-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .tone-chip { background: var(--chip); padding: 5px 12px; border-radius: 999px; font-size: 13px; color: #4a4a45; }
+  .tone-summary { font-size: 14px; color: #333; background: var(--accent-soft); padding: 14px 16px; border-radius: 8px; border-left: 3px solid var(--accent); line-height: 1.6; }
+  .tone-summary p { margin: 0 0 12px; }
+  .tone-summary p:last-child { margin-bottom: 0; }
+
+  /* Sources */
+  .sources-section { margin-bottom: 22px; padding-bottom: 20px; border-bottom: 1px solid var(--line); }
+  .src-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 14px; }
+  .src-item { }
+  .src-title { font-size: 13px; color: #1a1a1a; font-weight: 600; display: block; line-height: 1.4; }
+  .src-desc { font-size: 12px; color: var(--muted); display: block; line-height: 1.45; margin-top: 1px; }
+  .src-url { display: block; font-size: 12px; color: var(--accent); text-decoration: none; margin-top: 3px; word-break: break-all; }
+  .src-url:hover { text-decoration: underline; }
+  .src-add { display: flex; gap: 8px; margin-top: 4px; }
+  .src-add input { flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 7px 12px; font: inherit; font-size: 13px; background: #fcfaf5; }
+  .src-add input:focus { outline: none; border-color: var(--accent); }
+
+  /* Loading steps */
+  .loading-steps { display: flex; flex-direction: column; gap: 10px; margin-top: 20px; }
+  .loading-step { font-size: 13px; color: var(--muted); line-height: 1.65; opacity: 0; transform: translateY(5px); transition: opacity 0.5s ease, transform 0.5s ease; }
+  .loading-step.visible { opacity: 1; transform: none; }
+  .loading-step strong { color: var(--ink); font-weight: 600; font-style: normal; }
+  .loading-step-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; font-style: normal; margin-bottom: 4px; }
+  .loading-step-numbered { display: flex; align-items: baseline; gap: 10px; }
+  .step-num { font-size: 11px; font-weight: 700; color: var(--accent); font-style: normal; min-width: 14px; flex-shrink: 0; }
+  .loading-fact { font-size: 14px; color: var(--ink); font-style: normal; background: var(--chip); padding: 13px 16px; border-radius: 8px; line-height: 1.6; transition: opacity 0.4s ease; }
+  .loading-fact.fading { opacity: 0; }
+  .loading-fact-box { font-size: 14px; color: var(--ink); background: var(--chip); padding: 14px 18px; border-radius: 8px; line-height: 1.6; margin-top: 20px; transition: opacity 0.4s ease; }
+  .loading-fact-box.fading { opacity: 0; }
+
+  /* Content cards (stacked) */
+  .content-cards { display: flex; flex-direction: column; gap: 12px; }
+  .content-card { background: #fcfaf5; border: 1px solid var(--line); border-radius: 10px; padding: 16px 20px; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .card-label { display: flex; align-items: center; gap: 7px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 600; }
+  .card-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .card-subject { font-weight: 600; font-size: 14px; margin-bottom: 8px; }
+  .card-body { font-size: 14px; white-space: pre-wrap; color: #222; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; line-height: 1.65; }
+  .card-body.prose { font-family: inherit; }
+  .card-meta { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* Refine section */
+  .refine-section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+  .refine-ta { width: 100%; }
+  .refine-btn-row { display: flex; justify-content: flex-end; margin-top: 10px; }
+
+  /* Loading / errors */
+  .loading-note { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 8px; margin-top: 6px; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--line); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; flex-shrink: 0; }
+  .error-box { background: #fde8e8; color: var(--err); padding: 10px 14px; border-radius: 8px; font-size: 13px; margin-top: 12px; }
+
+  footer.foot { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
+
+  /* Developer API section */
+  .api-section { border: 1px solid var(--line); border-radius: 12px; margin-bottom: 20px; background: var(--card); overflow: hidden; }
+  .api-header-row { display: flex; align-items: center; gap: 10px; padding: 14px 20px; }
+  .api-title { font-size: 13px; font-weight: 600; color: var(--ink); }
+  .api-badge { font-size: 10px; text-transform: uppercase; letter-spacing: 0.08em; background: var(--chip); color: var(--muted); padding: 3px 8px; border-radius: 999px; font-weight: 600; }
+  .api-header-actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+  .api-icon-btn { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 6px; border: 1px solid var(--line); background: var(--card); color: var(--muted); cursor: pointer; transition: background 0.15s, color 0.15s; white-space: nowrap; }
+  .api-icon-btn:hover { background: #f0ece5; color: var(--ink); }
+  .api-icon-btn svg { flex-shrink: 0; }
+  .api-expand-btn { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 700; padding: 5px 12px; border-radius: 6px; border: none; background: var(--ink); color: #fff; cursor: pointer; transition: opacity 0.15s; letter-spacing: 0.02em; }
+  .api-expand-btn:hover { opacity: 0.82; }
+  .api-expand-btn .chevron { font-size: 10px; transition: transform 0.2s ease; display: inline-block; }
+  .api-expand-btn.open .chevron { transform: rotate(180deg); }
+  .api-body { display: none; padding: 0 24px 24px; border-top: 1px solid var(--line); }
+  .api-body.open { display: block; }
+  .api-body { display: none; padding: 0 24px 24px; border-top: 1px solid var(--line); }
+  .api-body.open { display: block; }
+  .api-intro { font-size: 13px; color: var(--muted); line-height: 1.65; margin: 16px 0 20px; }
+  .api-intro a { color: var(--accent); text-decoration: none; }
+  .api-intro a:hover { text-decoration: underline; }
+  .api-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  @media (max-width: 680px) { .api-grid { grid-template-columns: 1fr; } }
+  .api-endpoint-section { margin-bottom: 28px; border: 1px solid #e8e2d6; border-radius: 10px; overflow: hidden; }
+  .api-endpoint-header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; background: #f7f4ef; border-bottom: 1px solid #e8e2d6; flex-wrap: wrap; }
+  .api-method { font-size: 11px; font-weight: 700; letter-spacing: 0.06em; background: var(--ink); color: #fff; padding: 2px 8px; border-radius: 4px; }
+  .api-path { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 13px; font-weight: 600; color: var(--ink); }
+  .api-endpoint-desc { font-size: 12px; color: var(--muted); margin-left: auto; }
+  .api-stack { display: flex; flex-direction: column; gap: 16px; padding: 16px; }
+  @media (max-width: 680px) { .api-endpoint-desc { margin-left: 0; width: 100%; } }
+  .api-block { }
+  .api-block-title { font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); font-weight: 600; margin-bottom: 8px; }
+  .api-code { background: #1a1a1a; color: #e8e2d6; font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 12px; line-height: 1.7; border-radius: 8px; padding: 14px 16px; overflow-x: auto; white-space: pre; }
+  .api-code .cm { color: #6b6b66; }
+  .api-code .ck { color: #c8a96e; }
+  .api-code .cv { color: #88b88a; }
+  .api-code .cs { color: #c8553d; }
+  .api-fields { display: flex; flex-direction: column; gap: 8px; }
+  .api-field { display: flex; gap: 10px; font-size: 12px; line-height: 1.5; }
+  .api-field-name { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; color: var(--ink); font-weight: 600; white-space: nowrap; min-width: 120px; }
+  .api-field-desc { color: var(--muted); }
+  .api-field-req { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--accent); font-weight: 600; }
+
+  /* Password gate */
+  #gate { position: fixed; inset: 0; background: var(--bg); display: flex; align-items: center; justify-content: center; z-index: 100; }
+  #gate .box { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 32px 36px; max-width: 380px; width: 90%; box-shadow: 0 8px 30px rgba(0,0,0,0.04); }
+  #gate h2 { font-family: Georgia, serif; font-weight: 500; margin: 0 0 6px; font-size: 22px; }
+  #gate p { color: var(--muted); font-size: 13px; margin: 0 0 18px; }
+  #gate input { width: 100%; padding: 11px 14px; border: 1px solid var(--line); border-radius: 8px; font: inherit; font-size: 14px; background: #fcfaf5; margin-bottom: 12px; }
+  #gate input:focus { outline: none; border-color: var(--accent); }
+  #gate button { width: 100%; }
+  #gate .err { color: var(--err); font-size: 12px; margin-top: 8px; min-height: 16px; }
+  body.locked { overflow: hidden; }
+  body.locked .wrap { filter: blur(4px); pointer-events: none; }
+</style>
+</head>
+<body class="locked">
+
+<div id="gate">
+  <div class="box">
+    <h2>Drop Dashboard</h2>
+    <p>Enter the shared password to continue.</p>
+    <form onsubmit="submitPassword(event)">
+      <input type="password" id="pw-input" autofocus autocomplete="current-password" placeholder="Password" />
+      <button type="submit">Unlock</button>
+      <div class="err" id="pw-err"></div>
+    </form>
+  </div>
+</div>
+
+<div class="wrap">
+  <header class="top">
+    <h1>Brand Voice Generator</h1>
+    <p class="sub">Describe what you're announcing, choose your formats, then generate — Claude researches the brand voice live and writes the copy.</p>
+  </header>
+
+  <nav class="main-tabs" role="tablist">
+    <button class="main-tab active" data-panel="create"   onclick="switchMainTab('create')">Create</button>
+    <button class="main-tab"        data-panel="examples" onclick="switchMainTab('examples')">Examples</button>
+    <button class="main-tab"        data-panel="api"      onclick="switchMainTab('api')">API</button>
+  </nav>
+
+  <!-- ============ CREATE PANEL ============ -->
+  <div class="main-panel active" id="main-panel-create">
+  <!-- Main form -->
+  <section class="controls">
+    <p class="controls-title">Generate announcement copy</p>
+
+    <div class="ctl-row">
+      <div class="ctl-label">Your brand</div>
+      <div class="brand-row">
+        <input type="text" id="yb-name" value="Rubirosa" placeholder="Brand name" />
+        <input type="url"  id="yb-url"  value="https://www.rubirosanyc.com/" placeholder="https://yourbrand.com" />
+      </div>
+    </div>
+
+    <div class="ctl-row">
+      <div class="ctl-label">Announcement topic</div>
+      <textarea class="ctl-ta" id="announcement" rows="4"
+        placeholder="Describe the type of announcement — e.g. A limited product drop, A membership club launch, A seasonal menu change, A collab with another brand">A pizza product drop: We're trying out a new recipe and have 15 pizzas available the weekend of the 17th. Recipients can pre-order one by 8pm tomorrow (but ppl need to understand they need to move fast before they all get ordered)</textarea>
+    </div>
+
+    <div class="ctl-row">
+      <div class="ctl-label">
+        Your example content
+        <span style="font-size:10px;text-transform:uppercase;letter-spacing:0.06em;font-weight:600;color:#fff;background:var(--muted);padding:2px 7px;border-radius:999px;margin-left:6px;vertical-align:middle;">Optional</span>
+        <span style="display:block;margin-top:4px;font-size:13px;color:var(--muted);text-transform:none;letter-spacing:0;font-weight:400;">Paste <strong style="color:var(--ink);font-weight:600;">copy you've already written</strong> in this brand's voice, or list <strong style="color:var(--ink);font-weight:600;">URLs of articles and interviews</strong> we should read to understand how they sound.</span>
+      </div>
+      <textarea class="ctl-ta" id="example-content" rows="3"
+        placeholder="Paste existing copy, or drop in article / interview URLs one per line…"></textarea>
+    </div>
+
+    <div class="ctl-row">
+      <div class="ctl-label">Formats to generate</div>
+      <div class="type-grid">
+        <label class="type-item"><input type="checkbox" name="type" value="sms" checked> SMS</label>
+        <label class="type-item"><input type="checkbox" name="type" value="email" checked> Email</label>
+        <label class="type-item"><input type="checkbox" name="type" value="instagram" checked> Instagram</label>
+        <label class="type-item"><input type="checkbox" name="type" value="banner"> Banner / Hero text</label>
+        <label class="type-item"><input type="checkbox" name="type" value="push"> Push notification</label>
+        <label class="type-item"><input type="checkbox" name="type" value="newsletter"> Newsletter blurb</label>
+        <label class="type-item">
+          <input type="checkbox" name="type" value="other" id="other-check"
+            onchange="document.getElementById('other-label').disabled = !this.checked">
+          Other:
+          <input type="text" id="other-label" disabled placeholder="e.g. Podcast blurb">
+        </label>
+      </div>
+    </div>
+
+    <div class="generate-btn-row">
+      <button onclick="runYourBrand()">Generate →</button>
+    </div>
+  </section>
+  <div id="panel-main" class="panel"></div>
+  </div>
+
+  <!-- ============ EXAMPLES PANEL ============ -->
+  <div class="main-panel" id="main-panel-examples">
+  <section class="controls" id="examples-card">
+    <p class="controls-title">Example brands</p>
+    <p style="font-size:13px;color:var(--muted);margin:-12px 0 18px;">Five real hospitality brands. Each one researches itself on load, then drafts a brand-appropriate drop announcement. Edit the announcement and hit regenerate to try a different angle.</p>
+
+    <div class="ex-tabs-bar" id="ex-tabs-bar">
+      <button class="ex-tab active" data-key="crumbl"      onclick="switchBrandTab('crumbl')">Crumbl</button>
+      <button class="ex-tab"        data-key="slanteddoor" onclick="switchBrandTab('slanteddoor')">The Slanted Door</button>
+      <button class="ex-tab"        data-key="chefico"     onclick="switchBrandTab('chefico')">Che Fico</button>
+      <button class="ex-tab"        data-key="helens"      onclick="switchBrandTab('helens')">Helen's Wines</button>
+      <button class="ex-tab"        data-key="nari"        onclick="switchBrandTab('nari')">Nari</button>
+    </div>
+
+    <div class="ex-panels-wrap">
+      <div class="ex-panel active" id="ex-panel-crumbl">      <div class="not-run">Loading…</div></div>
+      <div class="ex-panel"        id="ex-panel-slanteddoor"> <div class="not-run">Queued…</div></div>
+      <div class="ex-panel"        id="ex-panel-chefico">     <div class="not-run">Queued…</div></div>
+      <div class="ex-panel"        id="ex-panel-helens">      <div class="not-run">Queued…</div></div>
+      <div class="ex-panel"        id="ex-panel-nari">        <div class="not-run">Queued…</div></div>
+    </div>
+  </section>
+  </div>
+
+  <!-- ============ API PANEL ============ -->
+  <div class="main-panel" id="main-panel-api">
+  <div class="api-section">
+    <div class="api-header-row">
+      <span class="api-title">Developer API</span>
+      <span class="api-badge">REST</span>
+      <div class="api-header-actions">
+        <button class="api-icon-btn" onclick="copyDocsAsMarkdown(this)" title="Copy docs as Markdown">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="4" width="10" height="12" rx="1.5"/>
+            <path d="M2 12V2.5A1.5 1.5 0 0 1 3.5 1H11"/>
+          </svg>
+          Copy docs
+        </button>
+        <button class="api-icon-btn" onclick="downloadDocsAsMarkdown()" title="Download docs as .md">
+          <svg width="13" height="13" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M8 2v8m0 0-3-3m3 3 3-3"/>
+            <path d="M3 13h10"/>
+          </svg>
+          Download .md
+        </button>
+      </div>
+    </div>
+    <div class="api-body open" id="api-body">
+      <p class="api-intro">
+        Generate on-brand announcement copy programmatically — useful for integrating into your CRM, automations, or internal tools.
+        Two endpoints: <strong>/api/announce</strong> does research + generation in one shot, <strong>/api/refine</strong> skips research and iterates on existing copy.<br><br>
+        <strong>Password:</strong> the name of our AI Slack channel. Reach out to Daniel if you need access.
+      </p>
+
+      <!-- Endpoint 1: /api/announce -->
+      <div class="api-endpoint-section">
+        <div class="api-endpoint-header">
+          <span class="api-method">POST</span>
+          <span class="api-path">/api/announce</span>
+          <span class="api-endpoint-desc">Research brand voice + generate copy in one call (~60–90s)</span>
+        </div>
+
+        <div class="api-stack">
+          <div class="api-block">
+            <div class="api-block-title" style="display:flex;justify-content:space-between;align-items:center;">
+              Request
+              <button class="copy" style="font-size:11px;padding:3px 10px;" onclick="copyAnnounceSnippet()">Copy</button>
+            </div>
+            <div class="api-code" id="announce-code"><span class="cm"># Paste this into your terminal</span>
+<span class="cv">curl</span> -X POST https://tone-dashboard.vercel.app/api/announce \
+  -H <span class="cs">"Content-Type: application/json"</span> \
+  -H <span class="cs">"x-api-key: &lt;password&gt;"</span> \
+  -d <span class="cs">'</span>{
+    <span class="ck">"name"</span>:           <span class="cv">"Rubirosa"</span>,        <span class="cm">// required</span>
+    <span class="ck">"website"</span>:        <span class="cv">"https://..."</span>,     <span class="cm">// required</span>
+    <span class="ck">"announcement"</span>:   <span class="cv">"A pizza drop"</span>,   <span class="cm">// required</span>
+    <span class="ck">"types"</span>:          <span class="cv">["sms","email"]</span>,  <span class="cm">// required — see valid values below</span>
+    <span class="ck">"exampleContent"</span>: <span class="cv">"..."</span>              <span class="cm">// optional</span>
+  }<span class="cs">'</span></div>
+          </div>
+
+          <div class="api-block">
+            <div class="api-block-title">Response</div>
+            <div class="api-code">{
+  <span class="ck">"brand"</span>:   { <span class="ck">"name"</span>: <span class="cv">"..."</span>, <span class="ck">"website"</span>: <span class="cv">"..."</span> },
+  <span class="ck">"tone"</span>:    { <span class="ck">"adjectives"</span>: [...], <span class="ck">"summary"</span>: <span class="cv">"..."</span> },  <span class="cm">// pass to /api/refine</span>
+  <span class="ck">"sources"</span>: [{ <span class="ck">"label"</span>: <span class="cv">"..."</span>, <span class="ck">"url"</span>: <span class="cv">"..."</span> }],             <span class="cm">// pass to /api/refine</span>
+
+  <span class="cm">// whichever formats you requested:</span>
+  <span class="ck">"sms"</span>:            <span class="cv">"..."</span>,
+  <span class="ck">"emailSubject"</span>:   <span class="cv">"..."</span>,
+  <span class="ck">"emailBody"</span>:      <span class="cv">"..."</span>,
+  <span class="ck">"instagram"</span>:      <span class="cv">"..."</span>,
+  <span class="ck">"bannerHeadline"</span>: <span class="cv">"..."</span>,
+  <span class="ck">"bannerSubhead"</span>:  <span class="cv">"..."</span>,
+  <span class="ck">"push"</span>:           <span class="cv">"..."</span>,
+  <span class="ck">"newsletter"</span>:     <span class="cv">"..."</span>
+}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Endpoint 2: /api/refine -->
+      <div class="api-endpoint-section">
+        <div class="api-endpoint-header">
+          <span class="api-method">POST</span>
+          <span class="api-path">/api/refine</span>
+          <span class="api-endpoint-desc">Iterate on existing copy — skips research, just rewrites (~10–20s)</span>
+        </div>
+
+        <div class="api-stack">
+          <div class="api-block">
+            <div class="api-block-title" style="display:flex;justify-content:space-between;align-items:center;">
+              Request
+              <button class="copy" style="font-size:11px;padding:3px 10px;" onclick="copyRefineSnippet()">Copy</button>
+            </div>
+            <div class="api-code" id="refine-code"><span class="cm"># Pass back tone + sources from /api/announce, add an iteration note</span>
+<span class="cv">curl</span> -X POST https://tone-dashboard.vercel.app/api/refine \
+  -H <span class="cs">"Content-Type: application/json"</span> \
+  -H <span class="cs">"x-api-key: &lt;password&gt;"</span> \
+  -d <span class="cs">'</span>{
+    <span class="ck">"name"</span>:         <span class="cv">"Rubirosa"</span>,                 <span class="cm">// required</span>
+    <span class="ck">"website"</span>:      <span class="cv">"https://..."</span>,              <span class="cm">// required</span>
+    <span class="ck">"announcement"</span>: <span class="cv">"A pizza drop"</span>,            <span class="cm">// required</span>
+    <span class="ck">"types"</span>:        <span class="cv">["sms","email"]</span>,            <span class="cm">// required</span>
+    <span class="ck">"tone"</span>:         <span class="cv">&lt;tone from /api/announce&gt;</span>,  <span class="cm">// required</span>
+    <span class="ck">"sources"</span>:      <span class="cv">&lt;sources from /api/announce&gt;</span>,<span class="cm">// required</span>
+    <span class="ck">"iteration"</span>:    <span class="cv">"make the SMS more urgent"</span>  <span class="cm">// required — what to change</span>
+  }<span class="cs">'</span></div>
+          </div>
+
+          <div class="api-block">
+            <div class="api-block-title">Response</div>
+            <div class="api-code">{
+  <span class="cm">// only the copy fields — no tone or sources</span>
+  <span class="cm">// pass tone + sources through yourself for further iterations</span>
+  <span class="ck">"sms"</span>:            <span class="cv">"..."</span>,
+  <span class="ck">"emailSubject"</span>:   <span class="cv">"..."</span>,
+  <span class="ck">"emailBody"</span>:      <span class="cv">"..."</span>,
+  <span class="ck">"instagram"</span>:      <span class="cv">"..."</span>,
+  <span class="ck">"bannerHeadline"</span>: <span class="cv">"..."</span>,
+  <span class="ck">"bannerSubhead"</span>:  <span class="cv">"..."</span>,
+  <span class="ck">"push"</span>:           <span class="cv">"..."</span>,
+  <span class="ck">"newsletter"</span>:     <span class="cv">"..."</span>
+}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Shared reference -->
+      <div class="api-stack">
+        <div class="api-block">
+          <div class="api-block-title">types — valid values</div>
+          <div class="api-fields">
+            <div class="api-field"><span class="api-field-name">sms</span><span class="api-field-desc">160-char SMS in brand voice</span></div>
+            <div class="api-field"><span class="api-field-name">email</span><span class="api-field-desc">Subject + body, 2–4 paragraphs</span></div>
+            <div class="api-field"><span class="api-field-name">instagram</span><span class="api-field-desc">Caption, 2–5 lines</span></div>
+            <div class="api-field"><span class="api-field-name">banner</span><span class="api-field-desc">Headline (8 words) + subhead (20 words)</span></div>
+            <div class="api-field"><span class="api-field-name">push</span><span class="api-field-desc">Push notification, max 100 chars</span></div>
+            <div class="api-field"><span class="api-field-name">newsletter</span><span class="api-field-desc">Newsletter blurb, 2–3 paragraphs</span></div>
+          </div>
+        </div>
+
+        <div class="api-block">
+          <div class="api-block-title">Notes</div>
+          <div class="api-fields">
+            <div class="api-field"><span class="api-field-name">Latency</span><span class="api-field-desc">/api/announce: 60–90s (research + generation). /api/refine: ~10–20s (generation only)</span></div>
+            <div class="api-field"><span class="api-field-name">Timeout</span><span class="api-field-desc">Set your client timeout to at least 120s for /api/announce</span></div>
+            <div class="api-field"><span class="api-field-name">Auth errors</span><span class="api-field-desc">401 means wrong or missing x-api-key header</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <footer class="foot">Live prototype · Research + copy generated by Claude with web search. Every Generate click hits the API.</footer>
+</div>
+
+<script>
+const BRANDS = {
+  crumbl:      { name: "Crumbl",            category: "Cookie Brand",              location: "Logan, UT",          website: "https://crumblcookies.com/" },
+  slanteddoor: { name: "The Slanted Door",  category: "Vietnamese Restaurant",     location: "San Francisco, CA",  website: "https://slanteddoor.com/" },
+  chefico:     { name: "Che Fico",          category: "Italian Restaurant",        location: "San Francisco, CA",  website: "https://www.chefico.com/" },
+  helens:      { name: "Helen's Wines",     category: "Natural Wine Shop",         location: "Los Angeles, CA",    website: "https://helenswines.com/" },
+  nari:        { name: "Nari",              category: "Thai-Californian Restaurant",location: "San Francisco, CA", website: "https://www.narisf.com/" },
+};
+
+const STATE = {};
+
+const SILLY_FACTS = [
+  "Mario Batali was accused of sexual misconduct by dozens of women and forced out of his entire restaurant empire overnight — Babbo, Del Posto, and his stake in Eataly, all gone.",
+  "Ken Friedman, co-owner of the beloved Spotted Pig, was accused by more than a dozen women of sexual harassment. April Bloomfield quietly distanced herself from the business while he faced the press.",
+  "John Besh, one of the most celebrated chefs in New Orleans, resigned from his restaurant group after 25 women reported sexual harassment — some of it institutionalized as part of company culture.",
+  "The restaurant industry accounts for a disproportionately high share of sexual harassment charges filed with the EEOC — more than almost any other sector of the US economy.",
+  "Charlie Trotter was known for psychological abuse so severe that former kitchen staff described PTSD-like symptoms. He reportedly made cooks cry as a routine management technique.",
+  "Marco Pierre White made Gordon Ramsay cry — more than once. Ramsay has admitted it publicly.",
+  "Anthony Bourdain's Kitchen Confidential revealed that many restaurants serve fish on Mondays that was purchased the previous Thursday. He said he stopped ordering fish on Mondays for the rest of his life.",
+  "The 'stage' system — where culinary graduates work unpaid in professional kitchens — is technically illegal in the US under federal labor law. It remains near-universal in fine dining.",
+  "Rudy Kurniawan was convicted of wine fraud in 2013 after selling millions of dollars in counterfeit vintage Bordeaux and Burgundy. He ran the entire operation out of his California home.",
+  "A 2021 study found that over 70% of fish labeled 'snapper' in US restaurants is actually a different species. One of the most consistently mislabeled fish in the country.",
+  "Kobe beef is legally protected in Japan and cannot be exported in most forms. The vast majority of 'Kobe beef' on US menus is fraudulent — legally and culinarily.",
+  "The federal tipped minimum wage has been $2.13/hour since 1991. The National Restaurant Association has lobbied successfully for decades to keep it there.",
+  "Substance abuse rates in the restaurant industry are among the highest of any US profession — studies consistently show 17%+ of food service workers struggle with alcohol dependency.",
+  "Gordon Ramsay's UK restaurant empire collapsed amid accusations of financial mismanagement. His father-in-law and long-time business partner sued him for wrongful dismissal and the fallout was very public.",
+  "The French Laundry received a health inspection with multiple critical violations in 2020 — the same period California Governor Gavin Newsom was photographed dining there in violation of his own COVID restrictions.",
+  "Thomas Keller's restaurant group was sued for unpaid wages by kitchen workers at both The French Laundry and Per Se.",
+  "Studies have found that up to 80% of olive oils labeled 'extra virgin' in the US don't meet the legal standard for that classification. The fraud is global and has been documented repeatedly.",
+  "White truffles at fine dining restaurants are frequently past their peak or replaced with lower-grade truffles artificially scented — truffle oil itself contains no actual truffles.",
+  "Restaurant tip theft by management is estimated to cost US workers hundreds of millions of dollars annually. Most workers never report it.",
+  "The Michelin Guide has been accused of systematic bias toward French and Japanese cuisine and against cuisines from Latin America, Africa, and South Asia.",
+  "Bocuse d'Or competitors have been caught with pre-prepared components smuggled into the competition. The judging process is opaque enough that politics consistently influences results.",
+  "Reality TV cooking competitions are extensively staged. Dishes are often pre-made or remade after filming, and contestants are coached by producers on what to say and how to react.",
+  "Gordon Ramsay's name appears on restaurants where he has reportedly never worked a service. In some cases, reportedly never visited.",
+  "The ghost kitchen industry has been widely criticized for deliberately deceiving customers — brands that appear to be separate restaurants are often the same kitchen, same staff, same fryer.",
+  "Alcohol accounts for 20-30% of a restaurant's revenue but can represent up to 80% of its profit. The food is often a loss leader.",
+  "The James Beard Foundation was rocked by a financial scandal in the early 2000s when an audit revealed hundreds of thousands in misused funds and lavish personal expenses by leadership.",
+  "Many 'artisanal' and 'house-made' menu items at casual dining chains are made from commercially produced bases. The 'secret sauce' often arrives in a five-gallon bucket.",
+  "In 2021, Noma faced mounting criticism after reports that its unpaid or stipend-paid intern workforce was central to operations. Redzepi later announced the restaurant's entire model was 'unsustainable.'",
+  "The 'locally sourced' claim at restaurants is almost entirely unregulated. No legal definition exists for 'local' — it can mean sourced from within 500 miles.",
+  "Charlie Trotter reportedly had a years-long feud with food critic Jeff Steingarten. He once told a reporter he planned to serve Steingarten's liver as an amuse-bouche at a fundraiser dinner.",
+  "Cocaine use in professional kitchens has been openly discussed by chefs including Bourdain, Marco Pierre White, and others. It has been described as near-endemic in high-pressure fine dining environments.",
+  "The NRA (National Restaurant Association) has spent decades successfully lobbying to keep the federal tipped minimum wage at $2.13/hour — unchanged since 1991 — and to block paid sick leave legislation.",
+  "A Michelin inspector once published a tell-all book revealing that visits were sometimes based on a single meal, that inspectors had clear favorites, and that politics played a role in star decisions.",
+  "The celebrity restaurant consulting model — where a famous chef licenses their name to a hotel or resort — is a multi-million dollar business where the chef may have minimal involvement in the food.",
+  "Health inspection records of many famous restaurants reveal recurring violations that are corrected before a follow-up visit, then return. The records are public but rarely reported until something goes very wrong.",
+  "Escoffier was fired from the Savoy Hotel in London amid suspicions of financial impropriety — accusations he denied, but serious enough to end his tenure at one of the world's most prestigious kitchens.",
+  "Many acclaimed 'seasonal' tasting menus rely heavily on frozen and preserved components out of season, presented as if fresh.",
+  "Restaurant industry lobby groups have successfully fought paid sick leave legislation in multiple US states — meaning kitchen workers routinely come to work ill, including during food prep.",
+  "The Yelp review system has been the subject of multiple lawsuits alleging that positive reviews were filtered from businesses that didn't purchase advertising on the platform.",
+  "Anthony Bourdain publicly feuded with Alice Waters, Paula Deen, Guy Fieri, and Rachael Ray. He once described Fieri's Times Square restaurant as evidence of a war crime.",
+  "A significant portion of 'dry-aged' steaks at restaurants are actually wet-aged in vacuum-sealed plastic bags — a faster, cheaper process that doesn't produce the same flavor compounds.",
+  "The restaurant industry employs one of the highest percentages of undocumented workers of any US sector. Kitchen immigration raids have been used as political theater by multiple administrations.",
+  "Fake 'reserve' or 'single barrel' spirits at bars are more common than the industry admits. Some establishments have been documented refilling premium bottles with cheaper product.",
+  "The 18% automatic gratuity on large parties is not legally required to be distributed to servers in all states. In some cases it goes entirely to the house.",
+  "Mario Batali was ultimately cleared of criminal charges in a Boston courtroom in 2022 — but his restaurant empire was already gone, and civil settlements had been paid.",
+  "The Michelin Guide did not rate restaurants outside France and Belgium until 1956. Its global authority rests on a very European foundation of taste, one it has never fully acknowledged.",
+  "Restaurant consulting fraud is widespread: operators pay significant fees for 'concept development' from consultants who recycle the same playbook across dozens of clients.",
+  "Several chefs who held Michelin stars have had them quietly removed without public explanation. Michelin does not disclose why stars are revoked.",
+  "Kitchen supply companies routinely offer undisclosed rebates and kickbacks to restaurant operators who specify their products — a conflict of interest that is an open secret in the trade.",
+  "The alcohol industry spends heavily on 'training' programs at restaurants that are partly product placement — designed to influence what servers recommend and in what order.",
+  "The NRA (National Restaurant Association) created a voluntary code of conduct in 2018 following the wave of MeToo allegations in the industry. There is no enforcement mechanism.",
+  "Bourdain described restaurant kitchens as a place where people go specifically to disappear — an environment that for decades attracted workers who needed somewhere that asked no questions.",
+  "The practice of 'body doubling' — where chefs sign off on menus and branding they had no hand in creating — is widespread in hotel and resort restaurant deals. It is rarely disclosed.",
+  "Several high-profile 'zero waste' restaurant concepts have been exposed as disposing of significant food waste through conventional means while marketing themselves as sustainable.",
+  "Chefs have been known to pursue Michelin stars specifically because a star enables them to raise prices 30-40% — not because of any change in what they're actually serving.",
+  "The Michelin Guide in Japan has been accused of creating a fine dining bubble — starred restaurants raising prices so dramatically that local residents can no longer afford to eat there.",
+  "Multiple Michelin-starred restaurants have been quietly removed from guides after it emerged that the featured chef had left or was not cooking during actual service.",
+  "In some cities, restaurant inspectors have been documented accepting gifts and meals from operators — a form of regulatory capture that is difficult to investigate and rarely prosecuted.",
+  "The 'hospitality is family' framing has been used for decades to resist labor organizing in restaurants — the implication being that unions are incompatible with the spirit of service.",
+  "Several top restaurants have been sued for pricing practices — advertising one price online and charging significantly more on the bill with unexplained add-ons.",
+  "The tipping system in the US originated partly as a way for employers to transfer the burden of staff wages onto customers. It was controversial when introduced in the 1890s and resisted as 'un-American.'",
+  "The widespread use of tip credit means some tipped workers in the US can legally be paid $2.13/hour in base wages — and verification that tips actually close the gap is largely self-reported.",
+  "Multiple celebrity chef restaurant groups have been revealed to offer no actual profit-sharing with the chef whose name is on the door. The name is licensed for a flat fee.",
+  "A study of restaurant receipts found that automatic gratuity is added without disclosure in a meaningful percentage of cases — and a number of diners pay it twice by adding an extra tip on top.",
+  "The rise of no-reservations policies at popular restaurants has created secondary markets where reservation brokers sell coveted bookings for hundreds of dollars above the meal cost.",
+  "Several prominent food media outlets have faced accusations of taking undisclosed payments — advertising, sponsored travel, or consulting fees — from the restaurants they cover.",
+  "The 'farm to table' marketing claim has been so thoroughly abused that several states have attempted legislation to define it. All have failed under industry lobbying pressure.",
+  "In 2020, the restaurant industry lobbied to be designated 'essential' infrastructure to access federal stimulus funds — while simultaneously fighting worker safety mandates in the same facilities.",
+  "The 'consulting chef' model used by airlines and hotels pays chefs a licensing fee to attach their name to food they did not design, test, or supervise at any meaningful scale.",
+  "The fine dining tipping structure in the US means a server at a busy high-end restaurant can earn dramatically more than the chef de cuisine — with no formal training and no corresponding industry status.",
+  "Several restaurant groups have used Chapter 11 bankruptcy to void lease obligations and employee benefits, then reopened at the same address under a new entity within months.",
+  "The US restaurant industry employs roughly 10% of the American workforce and has historically been one of the most effective at blocking federal labor reforms that apply to every other sector.",
+  "Per Se in NYC received a zero-star review from Pete Wells in the New York Times. One of the most expensive restaurants in the country. The review described cold courses, absent service, and broken promises.",
+  "elBulli received 2 million reservation requests per year for roughly 8,000 available seats. Adrià closed it voluntarily at the peak of its fame.",
+  "The second-cheapest bottle of wine on a restaurant list is almost always the highest-margin item. Wine lists are designed around the psychology of people who don't want to look cheap.",
+  "Nobu Matsuhisa was nearly bankrupt before his first restaurant opened. Robert De Niro reportedly approached him after being turned down for a table and offered to invest.",
+  "Delivery platforms like DoorDash and Uber Eats charge restaurants 15-30% commission per order. Many operators say this makes delivery structurally unprofitable while creating dependency.",
+  "Danny Meyer eliminated tipping across his restaurant group. Within a year, server turnover spiked as staff left for better-paying competitors. He reversed the policy.",
+  "The James Beard Awards have been widely accused of perpetuating the same networks year over year — same cities, same investors, same PR firms cycling through different nominees.",
+  "Grant Achatz of Alinea lost a significant portion of his sense of taste to stage IV tongue cancer — and continued running a three-Michelin-star kitchen through treatment.",
+  "Several chefs who dropped their Michelin stars have said publicly that the guide made them more stressed, less creative, and less profitable — not less.",
+  "Marco Pierre White has said he gave back his Michelin stars because the guide's inspectors had become his clients, and he cooked to please them rather than himself.",
+  "The 'open kitchen' trend in restaurant design was partly a deliberate trust signal — letting guests see nothing suspicious was happening backstage. It also cut construction costs.",
+  "Chez Panisse has been accused by former employees of wage violations and a culture that romanticized working at poverty wages in exchange for proximity to Alice Waters.",
+  "Pre-payment required for fine dining reservations began not as a hospitality gesture but as a financial tool to prevent no-shows from destroying nightly revenue projections.",
+  "Several restaurant groups have operated at a loss and been sustained entirely by investor capital — the goal being to build an asset to sell, not to run a food business.",
+  "Culinary school debt leaves many graduates earning $30,000-$40,000 annually as line cooks. The ROI of formal culinary education relative to apprenticeship is genuinely disputed.",
+  "The World's 50 Best Restaurants list has been criticized for systematically favoring cities where its voting panelists are concentrated — creating a self-reinforcing geographic bias.",
+  "Many Michelin-starred restaurants in Asia have faced accusations that local Guide inspectors lack sufficient independence from tourism boards and government relationships.",
+  "The practice of comping food and drink — writing off free meals for friends, media, and industry contacts — is a significant source of untracked loss in most operations, rarely disclosed to investors.",
+  "Shake Shack's IPO in 2015 valued the business at roughly $1.6 billion at a time when the chain had not yet turned a systemwide profit.",
+  "Restaurant groups in some states have successfully argued that 'entertainment' portions of a dining experience — live music, tableside theatrics — should not be considered tipped services.",
+  "Nashville Hot Chicken was allegedly invented as revenge. Thornton Prince's girlfriend reportedly made fried chicken scorching hot to punish him after a late night out. He loved it and eventually opened a restaurant.",
+  "The health inspection records of many celebrated restaurants reveal recurring violations that are fixed before follow-up visits and then return. The records are public. Almost no one looks at them.",
+  "Escoffier codified the brigade system and modern French service — and was also quietly dismissed from the Savoy Hotel amid accusations of financial impropriety that his supporters spent years trying to suppress.",
+  "Several food journalists have documented receiving identical press releases attributed to different 'independent' voices — suggesting coordinated, undisclosed PR operations disguised as organic coverage.",
+  "The 'locally sourced' and 'sustainable' claims on restaurant menus are rarely verified by any third party. There is no legal consequence for making them falsely.",
+  "A significant portion of the restaurant industry's cash-heavy accounting history has involved underreported revenue. This is considered common knowledge among operators and accountants in the space.",
+  "The restaurant industry is one of the few sectors where it remains legal in some states to pay workers below minimum wage through the tip credit — without the employer ever verifying tips actually close the gap.",
+  "Careme — the first chef to become genuinely famous — cooked for Napoleon, Tsar Alexander I, and the British royal family. He also died at 48, likely from decades of breathing coal smoke in enclosed palace kitchens.",
+];
+
+// Shuffle an array (Fisher-Yates)
+function shuffleArray(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// ---------- Password gate ----------
+function getPw() { return sessionStorage.getItem("pw") || ""; }
+function setPw(v) { sessionStorage.setItem("pw", v); }
+function lock()   { document.body.classList.add("locked");    document.getElementById("gate").style.display = "flex"; }
+function unlock() { document.body.classList.remove("locked"); document.getElementById("gate").style.display = "none"; }
+
+async function submitPassword(e) {
+  e.preventDefault();
+  const errEl = document.getElementById("pw-err");
+  errEl.textContent = "";
+  const pw = document.getElementById("pw-input").value.trim();
+  if (!pw) return;
+  try {
+    const r = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": pw },
+      body: JSON.stringify({})
+    });
+    if (r.status === 401) { errEl.textContent = "Wrong password."; return; }
+    setPw(pw); unlock(); startExamplesAutorun();
+  } catch { errEl.textContent = "Network error. Try again."; }
+}
+if (getPw()) { unlock(); startExamplesAutorun(); }
+
+// ---------- Top-level tabs ----------
+function switchMainTab(panel) {
+  document.querySelectorAll(".main-tab").forEach(t => t.classList.toggle("active", t.dataset.panel === panel));
+  document.querySelectorAll(".main-panel").forEach(p => p.classList.toggle("active", p.id === `main-panel-${panel}`));
+}
+
+// ---------- Global inputs (Create tab only) ----------
+function getCreateInputs() {
+  return {
+    announcement:   document.getElementById("announcement").value.trim(),
+    exampleContent: document.getElementById("example-content").value.trim(),
+    types:          [...document.querySelectorAll('input[name="type"]:checked')].map(el => el.value),
+    otherLabel:     document.getElementById("other-label").value.trim(),
+  };
+}
+
+// ---------- Your brand (Create tab) ----------
+function runYourBrand() {
+  const name = document.getElementById("yb-name").value.trim();
+  let   url  = document.getElementById("yb-url").value.trim();
+  if (!name || !url) {
+    alert("Please enter your brand name and website URL.");
+    document.getElementById(!name ? "yb-name" : "yb-url").focus();
+    return;
+  }
+  const inputs = getCreateInputs();
+  if (!inputs.announcement) { alert("Please describe what you're announcing."); document.getElementById("announcement").focus(); return; }
+  if (inputs.types.length === 0) { alert("Please select at least one format."); return; }
+
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+  BRANDS["main"] = { name, category: "Your Brand", location: "", website: url };
+  const panelEl = document.getElementById("panel-main");
+  panelEl.classList.add("open");
+  panelEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  runGenerate("main", panelEl, inputs);
+}
+
+// ---------- Example brands ----------
+function switchBrandTab(key) {
+  document.querySelectorAll(".ex-tab").forEach(t => t.classList.toggle("active", t.dataset.key === key));
+  document.querySelectorAll(".ex-panel").forEach(p => p.classList.toggle("active", p.id === `ex-panel-${key}`));
+}
+
+// Default formats for example brands — keeps the examples view focused.
+const EXAMPLE_TYPES = ["sms", "email", "instagram"];
+
+// ---------- Research cache (localStorage, keyed by website URL) ----------
+// Research is expensive (~5-15¢ per call), tone rarely changes. Cache it.
+// Ignored / refreshed when the user clicks "Re-research".
+const RESEARCH_CACHE_PREFIX = "bvg-research-v1:";
+function loadCachedResearch(url) {
+  try {
+    const raw = localStorage.getItem(RESEARCH_CACHE_PREFIX + url);
+    return raw ? JSON.parse(raw) : null;
+  } catch { return null; }
+}
+function saveCachedResearch(url, data) {
+  try { localStorage.setItem(RESEARCH_CACHE_PREFIX + url, JSON.stringify(data)); } catch {}
+}
+function clearCachedResearch(url) {
+  try { localStorage.removeItem(RESEARCH_CACHE_PREFIX + url); } catch {}
+}
+
+// Auto-fire: research + generate for each of the 5 example brands.
+// Cached brands fire immediately (cheap); uncached stagger 3s apart so the
+// API doesn't get hammered on first page load.
+let _examplesStarted = false;
+function startExamplesAutorun() {
+  if (_examplesStarted) return;
+  _examplesStarted = true;
+  const exampleKeys = ["crumbl", "slanteddoor", "chefico", "helens", "nari"];
+  let uncachedCount = 0;
+  exampleKeys.forEach((key) => {
+    const hasCache = !!loadCachedResearch(BRANDS[key].website);
+    const delay = hasCache ? 0 : (uncachedCount++ * 3000);
+    setTimeout(() => runExample(key), delay);
+  });
+}
+
+// Per-example: research (or load from cache) → pre-fill announcement → generate.
+// Pass `{ force: true }` to bypass the cache and re-research.
+async function runExample(key, opts = {}) {
+  const force = !!opts.force;
+  const panelEl = document.getElementById(`ex-panel-${key}`);
+  if (!panelEl) return;
+  const brand = BRANDS[key];
+  const tab = document.querySelector(`.ex-tab[data-key="${key}"]`);
+  if (tab) tab.classList.add("generating");
+
+  // Cached path — skip the expensive research call.
+  const cached = force ? null : loadCachedResearch(brand.website);
+  if (cached) {
+    const { tone, sources, suggestedAnnouncement } = cached;
+    STATE[key] = { tone, sources, announcement: suggestedAnnouncement };
+    panelEl.innerHTML = `
+      <div class="panel-hdr">
+        <h3>${escapeHtml(brand.name)}</h3>
+        <div class="ph-meta">${escapeHtml(brand.category)}${brand.location ? " · " + escapeHtml(brand.location) : ""} · <a class="url" href="${escapeAttr(brand.website)}" target="_blank">${escapeHtml(brand.website)}</a></div>
+      </div>
+      ${buildSourcesBar(key, sources)}
+      <div class="loading-note"><span class="spinner"></span>Writing copy from cached research…</div>
+    `;
+    try {
+      const r = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+        body: JSON.stringify({
+          name: brand.name, website: brand.website,
+          announcement: suggestedAnnouncement, exampleContent: "",
+          types: EXAMPLE_TYPES, otherLabel: "", tone, sources
+        })
+      });
+      if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+      const data = await r.json();
+      if (!r.ok) throw new Error(data.detail || data.error || "Generation failed.");
+      STATE[key].messages = data;
+      if (tab) tab.classList.remove("generating");
+      renderExampleResults(key, panelEl, data, sources, tone, suggestedAnnouncement);
+    } catch (err) {
+      if (tab) tab.classList.remove("generating");
+      panelEl.innerHTML += `<div class="error-box">Generation failed: ${escapeHtml(err.message)}</div>`;
+    }
+    return;
+  }
+
+  // Loading state for research
+  const firstFact = shuffleArray(SILLY_FACTS)[0];
+  panelEl.innerHTML = `
+    <div class="panel-hdr">
+      <h3>${escapeHtml(brand.name)}</h3>
+      <div class="ph-meta">${escapeHtml(brand.category)}${brand.location ? " · " + escapeHtml(brand.location) : ""} · <a class="url" href="${escapeAttr(brand.website)}" target="_blank">${escapeHtml(brand.website)}</a></div>
+    </div>
+    <div class="loading-note" id="loading-label-${key}"><span class="spinner"></span>Analyzing ${escapeHtml(brand.name)}…</div>
+    <div class="loading-steps" id="loading-steps-${key}"></div>
+    <div class="loading-fact-box" id="fact-${key}">${escapeHtml(firstFact)}</div>
+  `;
+  const stepsContainer = document.getElementById(`loading-steps-${key}`);
+  const stepTimers = [];
+  const titleEl = document.createElement("div");
+  titleEl.className = "loading-step loading-step-title";
+  titleEl.textContent = "Here's how it works";
+  stepsContainer.appendChild(titleEl);
+  requestAnimationFrame(() => requestAnimationFrame(() => titleEl.classList.add("visible")));
+  const researchSteps = [
+    `Claude searches the web for <strong>${escapeHtml(brand.name)}</strong> — their site, Instagram, press coverage, and any founder interviews it can find.`,
+    `It reads through everything and looks for patterns: the words they reach for, how they punctuate, sentence length, whether they use emoji, slang, signoffs, etc.`,
+    `It cross-references sources to build a consistent picture — not what the brand says about itself, but how it actually sounds when it talks.`,
+  ];
+  const step1El = document.createElement("div");
+  step1El.className = "loading-step loading-step-numbered";
+  step1El.innerHTML = `<span class="step-num">1</span><span>${researchSteps[0]}</span>`;
+  stepsContainer.appendChild(step1El);
+  requestAnimationFrame(() => requestAnimationFrame(() => step1El.classList.add("visible")));
+  researchSteps.slice(1).forEach((text, i) => {
+    stepTimers.push(setTimeout(() => {
+      if (!document.body.contains(stepsContainer)) return;
+      const div = document.createElement("div");
+      div.className = "loading-step loading-step-numbered";
+      div.innerHTML = `<span class="step-num">${i + 2}</span><span>${text}</span>`;
+      stepsContainer.appendChild(div);
+      requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add("visible")));
+    }, (i + 1) * 3000));
+  });
+  const facts = shuffleArray(SILLY_FACTS);
+  let factIdx = 1;
+  for (let i = 1; i <= 30; i++) {
+    stepTimers.push(setTimeout(() => {
+      const el = document.getElementById(`fact-${key}`);
+      if (!el || !document.body.contains(el)) return;
+      el.classList.add("fading");
+      setTimeout(() => { el.textContent = facts[factIdx++ % facts.length]; el.classList.remove("fading"); }, 400);
+    }, i * 6000));
+  }
+
+  // Research
+  let tone, sources, suggestedAnnouncement = "";
+  try {
+    const r = await fetch("/api/research", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ name: brand.name, website: brand.website })
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Research failed.");
+    tone = data.tone;
+    sources = data.sources;
+    suggestedAnnouncement = data.suggestedAnnouncement || "A limited drop of something only this brand would make";
+  } catch (err) {
+    stepTimers.forEach(clearTimeout);
+    if (tab) tab.classList.remove("generating");
+    panelEl.innerHTML += `<div class="error-box">Research failed: ${escapeHtml(err.message)}</div>`;
+    return;
+  }
+  stepTimers.forEach(clearTimeout);
+
+  // Cache the research so next page load doesn't re-run it.
+  saveCachedResearch(brand.website, { tone, sources, suggestedAnnouncement });
+
+  // Save research + default announcement into per-example state so regenerate works.
+  STATE[key] = { tone, sources, announcement: suggestedAnnouncement };
+
+  // Generate loading state
+  panelEl.innerHTML = `
+    <div class="panel-hdr">
+      <h3>${escapeHtml(brand.name)}</h3>
+      <div class="ph-meta">${escapeHtml(brand.category)}${brand.location ? " · " + escapeHtml(brand.location) : ""} · <a class="url" href="${escapeAttr(brand.website)}" target="_blank">${escapeHtml(brand.website)}</a></div>
+    </div>
+    ${buildSourcesBar(key, sources)}
+    <div class="loading-note"><span class="spinner"></span>Writing copy…</div>
+    <div class="loading-steps">
+      <div class="loading-step visible">Each format is written from scratch in <strong>${escapeHtml(brand.name)}</strong>'s voice — not a template, but copy that matches how this brand actually sounds.</div>
+    </div>
+  `;
+
+  // Generate
+  let messages;
+  try {
+    const r = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({
+        name: brand.name, website: brand.website,
+        announcement: suggestedAnnouncement, exampleContent: "",
+        types: EXAMPLE_TYPES, otherLabel: "", tone, sources
+      })
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || data.error || "Generation failed.");
+    messages = data;
+  } catch (err) {
+    if (tab) tab.classList.remove("generating");
+    panelEl.innerHTML += `<div class="error-box">Generation failed: ${escapeHtml(err.message)}</div>`;
+    return;
+  }
+
+  STATE[key].messages = messages;
+  if (tab) tab.classList.remove("generating");
+  renderExampleResults(key, panelEl, messages, sources, tone, suggestedAnnouncement);
+}
+
+// Force re-research for a single example (bypasses cache, then regenerates).
+function rerunResearch(key) {
+  const brand = BRANDS[key];
+  if (!brand) return;
+  clearCachedResearch(brand.website);
+  runExample(key, { force: true });
+}
+
+// Regenerate copy for a single example using the edited announcement + saved research.
+async function regenerateExample(key) {
+  const state = STATE[key];
+  const panelEl = document.getElementById(`ex-panel-${key}`);
+  if (!state || !panelEl) return;
+  const brand = BRANDS[key];
+  const taEl = document.getElementById(`ex-announcement-${key}`);
+  const newAnnouncement = (taEl && taEl.value.trim()) || state.announcement || "A limited drop";
+  state.announcement = newAnnouncement;
+
+  const btn = panelEl.querySelector(".ex-regen-btn");
+  if (btn) { btn.disabled = true; btn.textContent = "Regenerating…"; }
+  const tab = document.querySelector(`.ex-tab[data-key="${key}"]`);
+  if (tab) tab.classList.add("generating");
+
+  try {
+    const r = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({
+        name: brand.name, website: brand.website,
+        announcement: newAnnouncement, exampleContent: "",
+        types: EXAMPLE_TYPES, otherLabel: "",
+        tone: state.tone, sources: state.sources
+      })
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || data.error || "Generation failed.");
+    state.messages = data;
+    if (tab) tab.classList.remove("generating");
+    renderExampleResults(key, panelEl, data, state.sources, state.tone, newAnnouncement);
+  } catch (err) {
+    if (tab) tab.classList.remove("generating");
+    if (btn) { btn.disabled = false; btn.textContent = "Regenerate"; }
+    panelEl.insertAdjacentHTML("beforeend", `<div class="error-box" style="margin-top:10px;">Regeneration failed: ${escapeHtml(err.message)}</div>`);
+  }
+}
+
+function renderExampleResults(key, panelEl, messages, sources, tone, announcement) {
+  const brand = BRANDS[key];
+  const adjectives = (tone && Array.isArray(tone.adjectives)) ? tone.adjectives : [];
+  const summary    = (tone && tone.summary) ? tone.summary : "";
+
+  const toneHtml = adjectives.length ? `
+    <div class="tone-section">
+      <div class="sec-label">Tone Signature</div>
+      <div class="tone-chips">${adjectives.map(a => `<span class="tone-chip">${escapeHtml(a)}</span>`).join("")}</div>
+      ${summary ? `<div class="tone-summary">${formatToneSummary(summary)}</div>` : ""}
+    </div>` : "";
+
+  const cardsHtml = EXAMPLE_TYPES.map(t => buildContentCard(t, "", messages)).join("");
+
+  panelEl.innerHTML = `
+    <div class="panel-hdr">
+      <h3>${escapeHtml(brand.name)}</h3>
+      <div class="ph-meta">${escapeHtml(brand.category)}${brand.location ? " · " + escapeHtml(brand.location) : ""} · <a class="url" href="${escapeAttr(brand.website)}" target="_blank">${escapeHtml(brand.website)}</a></div>
+    </div>
+    ${toneHtml}
+    ${buildSourcesBar(key, sources)}
+    <div class="ctl-row" style="margin-bottom:16px;">
+      <div class="ctl-label">Announcement <span class="opt" style="color:var(--muted);">— inferred from ${escapeHtml(brand.name)}'s site. Edit and regenerate to try something else.</span></div>
+      <textarea class="ctl-ta" id="ex-announcement-${key}" rows="2">${escapeHtml(announcement)}</textarea>
+      <div class="refine-btn-row" style="margin-top:8px;gap:8px;">
+        <button class="ghost" onclick="rerunResearch('${key}')" title="Re-run the research step (cached by default)">Re-research</button>
+        <button class="ghost ex-regen-btn" onclick="regenerateExample('${key}')">Regenerate</button>
+      </div>
+    </div>
+    <div class="content-cards">${cardsHtml}</div>
+  `;
+}
+
+// ---------- Core: research → generate (Create tab) ----------
+async function runGenerate(key, panelEl, inputs) {
+  const { announcement, exampleContent, types, otherLabel } = inputs;
+  if (!announcement || types.length === 0) return; // already validated by callers
+
+  const brand    = BRANDS[key];
+  const isMain   = key === "main";
+  const mainBtn  = isMain ? document.querySelector("#main-panel-create .generate-btn-row button") : null;
+  const tab      = !isMain ? document.querySelector(`.ex-tab[data-key="${key}"]`) : null;
+
+  if (mainBtn) mainBtn.disabled = true;
+  if (tab)     tab.classList.add("generating");
+
+  // ---- Loading state ----
+  const researchSteps = [
+    `Claude searches the web for <strong>${escapeHtml(brand.name)}</strong> — their site, Instagram, press coverage, and any founder interviews it can find.`,
+    `It reads through everything and looks for patterns: the words they reach for, how they punctuate, sentence length, whether they use emoji, slang, signoffs, etc.`,
+    `It cross-references sources to build a consistent picture — not what the brand says about itself, but how it actually sounds when it talks.`,
+  ];
+
+  const firstFact = shuffleArray(SILLY_FACTS)[0];
+  panelEl.innerHTML = `
+    <div class="panel-hdr">
+      <h3>${escapeHtml(brand.name)}</h3>
+      <div class="ph-meta">${escapeHtml(brand.category)}${brand.location ? " · " + escapeHtml(brand.location) : ""} · <a class="url" href="${escapeAttr(brand.website)}" target="_blank">${escapeHtml(brand.website)}</a></div>
+    </div>
+    <div class="loading-note" id="loading-label-${key}"><span class="spinner"></span>Analyzing ${escapeHtml(brand.name)}…</div>
+    <div class="loading-steps" id="loading-steps-${key}"></div>
+    <div class="loading-fact-box" id="fact-${key}">${escapeHtml(firstFact)}</div>
+  `;
+
+  // Reveal explanation steps — title + step 1 instantly, steps 2 & 3 every 6s, then fun facts
+  const stepsContainer = document.getElementById(`loading-steps-${key}`);
+  const stepTimers = [];
+
+  // Title + Step 1 appear immediately
+  const titleEl = document.createElement("div");
+  titleEl.className = "loading-step loading-step-title";
+  titleEl.textContent = "Here's how it works";
+  stepsContainer.appendChild(titleEl);
+  requestAnimationFrame(() => requestAnimationFrame(() => titleEl.classList.add("visible")));
+
+  const step1El = document.createElement("div");
+  step1El.className = "loading-step loading-step-numbered";
+  step1El.innerHTML = `<span class="step-num">1</span><span>${researchSteps[0]}</span>`;
+  stepsContainer.appendChild(step1El);
+  requestAnimationFrame(() => requestAnimationFrame(() => step1El.classList.add("visible")));
+
+  // Steps 2 and 3 at 3s and 6s
+  researchSteps.slice(1).forEach((text, i) => {
+    stepTimers.push(setTimeout(() => {
+      if (!stepsContainer || !document.body.contains(stepsContainer)) return;
+      const div = document.createElement("div");
+      div.className = "loading-step loading-step-numbered";
+      div.innerHTML = `<span class="step-num">${i + 2}</span><span>${text}</span>`;
+      stepsContainer.appendChild(div);
+      requestAnimationFrame(() => requestAnimationFrame(() => div.classList.add("visible")));
+    }, (i + 1) * 3000));
+  });
+
+  // Facts: separate box below the steps list, visible immediately, rotate every 6s
+  const facts = shuffleArray(SILLY_FACTS);
+  let factIdx = 1; // first fact already rendered in innerHTML
+
+  for (let i = 1; i <= 30; i++) {
+    stepTimers.push(setTimeout(() => {
+      const el = document.getElementById(`fact-${key}`);
+      if (!el || !document.body.contains(el)) return;
+      el.classList.add("fading");
+      setTimeout(() => {
+        el.textContent = facts[factIdx++ % facts.length];
+        el.classList.remove("fading");
+      }, 400);
+    }, i * 6000));
+  }
+
+  // ---- Step 1: Research ----
+  let tone, sources;
+  try {
+    const r = await fetch("/api/research", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ name: brand.name, website: brand.website })
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || "Research failed.");
+    tone = data.tone; sources = data.sources;
+  } catch (err) {
+    stepTimers.forEach(clearTimeout);
+    if (tab) tab.classList.remove("generating");
+    if (mainBtn) mainBtn.disabled = false;
+    panelEl.innerHTML += `<div class="error-box">Research failed: ${escapeHtml(err.message)}</div>`;
+    return;
+  }
+
+  // ---- Generate loading ----
+  stepTimers.forEach(clearTimeout);
+
+  panelEl.innerHTML = `
+    <div class="panel-hdr">
+      <h3>${escapeHtml(brand.name)}</h3>
+      <div class="ph-meta">${escapeHtml(brand.category)}${brand.location ? " · " + escapeHtml(brand.location) : ""} · <a class="url" href="${escapeAttr(brand.website)}" target="_blank">${escapeHtml(brand.website)}</a></div>
+    </div>
+    ${buildSourcesBar(key, sources)}
+    <div class="loading-note"><span class="spinner"></span>Writing copy…</div>
+    <div class="loading-steps">
+      <div class="loading-step visible">Each format is written from scratch in <strong>${escapeHtml(brand.name)}</strong>'s voice — not a template, but copy that matches how this brand actually sounds.</div>
+    </div>
+  `;
+
+  // ---- Step 2: Generate ----
+  let messages;
+  try {
+    const r = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ name: brand.name, website: brand.website, announcement, exampleContent, types, otherLabel, tone, sources })
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error((data.detail || data.error || "Generation failed."));
+    messages = data;
+  } catch (err) {
+    if (tab) tab.classList.remove("generating");
+    if (mainBtn) mainBtn.disabled = false;
+    panelEl.innerHTML += `<div class="error-box">Generation failed: ${escapeHtml(err.message)}</div>`;
+    return;
+  }
+
+  STATE[key] = { tone, sources, messages, announcement, exampleContent, types, otherLabel };
+  if (tab)    tab.classList.remove("generating");
+  if (mainBtn){ mainBtn.disabled = false; mainBtn.textContent = "Regenerate →"; }
+  renderResults(key, panelEl, types, otherLabel, messages, sources, tone);
+}
+
+// ---------- Render stacked results ----------
+function renderResults(key, panelEl, types, otherLabel, messages, sources, tone) {
+  const brand = BRANDS[key];
+  const adjectives = (tone && Array.isArray(tone.adjectives)) ? tone.adjectives : [];
+  const summary    = (tone && tone.summary) ? tone.summary : "";
+
+  const toneHtml = adjectives.length ? `
+    <div class="tone-section">
+      <div class="sec-label">Tone Signature</div>
+      <div class="tone-chips">${adjectives.map(a => `<span class="tone-chip">${escapeHtml(a)}</span>`).join("")}</div>
+      ${summary ? `<div class="tone-summary">${formatToneSummary(summary)}</div>` : ""}
+    </div>` : "";
+
+  const cardsHtml = types.map(t => buildContentCard(t, otherLabel, messages)).join("");
+
+  panelEl.innerHTML = `
+    <div class="panel-hdr">
+      <h3>${escapeHtml(brand.name)}</h3>
+      <div class="ph-meta">${escapeHtml(brand.category)}${brand.location ? " · " + escapeHtml(brand.location) : ""} · <a class="url" href="${escapeAttr(brand.website)}" target="_blank">${escapeHtml(brand.website)}</a></div>
+    </div>
+    ${toneHtml}
+    ${buildSourcesBar(key, sources)}
+    <div class="content-cards">${cardsHtml}</div>
+    <div class="refine-section">
+      <div class="ctl-label" style="margin-bottom:8px;">Refine the copy</div>
+      <textarea class="ctl-ta refine-ta" id="refine-${key}" rows="2"
+        placeholder="Describe what to change — e.g. make the SMS more urgent, shorten the email, add more personality to the Instagram…"></textarea>
+      <div class="refine-btn-row">
+        <button class="ghost" onclick="runRefinement('${key}')">Regenerate with this note</button>
+      </div>
+    </div>
+  `;
+}
+
+function buildContentCard(type, otherLabel, messages) {
+  let label, bodyHtml, copyVal;
+
+  if (type === "sms") {
+    label = "SMS";
+    const text = messages.sms || "";
+    bodyHtml = `<div class="card-body">${escapeHtml(text)}</div><div class="card-meta">${text.length} / 160 chars</div>`;
+    copyVal = text;
+  } else if (type === "email") {
+    label = "Email";
+    const subject = messages.emailSubject || "";
+    const body    = messages.emailBody    || "";
+    bodyHtml = `<div class="card-subject">Subject: ${escapeHtml(subject)}</div><div class="card-body prose">${escapeHtml(body)}</div>`;
+    copyVal = "Subject: " + subject + "\n\n" + body;
+  } else if (type === "instagram") {
+    label = "Instagram Caption";
+    const text = messages.instagram || "";
+    bodyHtml = `<div class="card-body prose">${escapeHtml(text)}</div>`;
+    copyVal = text;
+  } else if (type === "banner") {
+    label = "Banner / Hero Text";
+    const hl  = messages.bannerHeadline || "";
+    const sub = messages.bannerSubhead  || "";
+    bodyHtml = `<div class="card-subject">${escapeHtml(hl)}</div><div class="card-body prose">${escapeHtml(sub)}</div>`;
+    copyVal = hl + "\n" + sub;
+  } else if (type === "push") {
+    label = "Push Notification";
+    const text = messages.push || "";
+    bodyHtml = `<div class="card-body">${escapeHtml(text)}</div><div class="card-meta">${text.length} / 100 chars</div>`;
+    copyVal = text;
+  } else if (type === "newsletter") {
+    label = "Newsletter Blurb";
+    const text = messages.newsletter || "";
+    bodyHtml = `<div class="card-body prose">${escapeHtml(text)}</div>`;
+    copyVal = text;
+  } else if (type === "other") {
+    label = otherLabel || "Other";
+    const text = messages.other || "";
+    bodyHtml = `<div class="card-body prose">${escapeHtml(text)}</div>`;
+    copyVal = text;
+  } else {
+    return "";
+  }
+
+  return `
+    <div class="content-card">
+      <div class="card-top">
+        <div class="card-label"><span class="card-dot"></span>${escapeHtml(label)}</div>
+        <button class="copy" data-copy-text="${escapeAttr(copyVal)}">Copy</button>
+      </div>
+      ${bodyHtml}
+    </div>`;
+}
+
+// ---------- Sources section ----------
+function formatSourceLabel(label) {
+  // Split on em-dash or en-dash (with optional surrounding spaces)
+  const m = label.match(/^(.+?)\s*[—–]\s*(.+)$/);
+  if (m) {
+    return `<strong class="src-title">${escapeHtml(m[1].trim())}</strong><span class="src-desc">${escapeHtml(m[2].trim())}</span>`;
+  }
+  return `<strong class="src-title">${escapeHtml(label)}</strong>`;
+}
+
+function buildSourcesBar(key, sources) {
+  const count = (sources || []).length;
+  const rows = (sources || []).map(s => `
+    <div class="src-item">
+      ${formatSourceLabel(s.label)}
+      <a class="src-url" href="${escapeAttr(s.url)}" target="_blank" rel="noopener">${escapeHtml(s.url)}</a>
+    </div>`
+  ).join("");
+  return `
+    <div class="sources-section">
+      <div class="sec-label">Sources <span style="font-weight:400;text-transform:none;letter-spacing:0;">(${count} found)</span></div>
+      <div class="src-list" id="src-list-${key}">${rows}</div>
+    </div>`;
+}
+
+// Delegated copy handler
+document.addEventListener("click", function (e) {
+  const btn = e.target.closest(".copy[data-copy-text]");
+  if (!btn) return;
+  navigator.clipboard.writeText(btn.dataset.copyText).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = "Copied ✓";
+    setTimeout(() => btn.textContent = orig, 1400);
+  });
+});
+
+// ---------- Refinement ----------
+async function runRefinement(key) {
+  const iteration = (document.getElementById(`refine-${key}`) || {}).value?.trim();
+  if (!iteration) return;
+
+  const brand   = BRANDS[key];
+  const state   = STATE[key];
+  if (!state) return;
+  // Use inputs saved on the state at initial generation time (Create tab).
+  const { announcement, exampleContent, types, otherLabel } = state;
+
+  const panelEl = key === "main"
+    ? document.getElementById("panel-main")
+    : document.getElementById(`ex-panel-${key}`);
+  if (!panelEl) return;
+
+  const isMain  = key === "main";
+  const mainBtn = isMain ? document.querySelector("#main-panel-create .generate-btn-row button") : null;
+  const tab     = !isMain ? document.querySelector(`.ex-tab[data-key="${key}"]`) : null;
+  if (mainBtn) mainBtn.disabled = true;
+  if (tab)     tab.classList.add("generating");
+
+  // Show inline loading state without losing the results panel header
+  const refineSection = panelEl.querySelector(".refine-section");
+  if (refineSection) {
+    const btn = refineSection.querySelector("button");
+    if (btn) { btn.disabled = true; btn.textContent = "Regenerating…"; }
+  }
+
+  let messages;
+  try {
+    const r = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({
+        name: brand.name, website: brand.website, announcement, exampleContent,
+        types, otherLabel, tone: state.tone, sources: state.sources, iteration
+      })
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.detail || data.error || "Generation failed.");
+    messages = data;
+  } catch (err) {
+    if (tab) tab.classList.remove("generating");
+    if (mainBtn) mainBtn.disabled = false;
+    if (refineSection) {
+      const btn = refineSection.querySelector("button");
+      if (btn) { btn.disabled = false; btn.textContent = "Regenerate with this note"; }
+      refineSection.insertAdjacentHTML("beforeend", `<div class="error-box" style="margin-top:10px;">Regeneration failed: ${escapeHtml(err.message)}</div>`);
+    }
+    return;
+  }
+
+  STATE[key].messages = messages;
+  if (tab)    tab.classList.remove("generating");
+  if (mainBtn){ mainBtn.disabled = false; mainBtn.textContent = "Regenerate →"; }
+  renderResults(key, panelEl, types, otherLabel, messages, state.sources, state.tone);
+  // Restore the iteration text so the user can keep refining
+  const newRefineEl = document.getElementById(`refine-${key}`);
+  if (newRefineEl) newRefineEl.value = iteration;
+}
+
+// ---------- Copy API snippets ----------
+function copyAnnounceSnippet() {
+  const snippet = `curl -X POST https://tone-dashboard.vercel.app/api/announce \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: <password>" \\
+  -d '{
+    "name": "Rubirosa",
+    "website": "https://www.rubirosanyc.com/",
+    "announcement": "A pizza drop",
+    "types": ["sms", "email", "instagram"],
+    "exampleContent": ""
+  }'`;
+  navigator.clipboard.writeText(snippet).then(() => {
+    const btn = document.querySelector("#announce-code").closest(".api-block").querySelector("button");
+    if (btn) { const o = btn.textContent; btn.textContent = "Copied ✓"; setTimeout(() => btn.textContent = o, 1400); }
+  });
+}
+
+function copyRefineSnippet() {
+  const snippet = `curl -X POST https://tone-dashboard.vercel.app/api/refine \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: <password>" \\
+  -d '{
+    "name": "Rubirosa",
+    "website": "https://www.rubirosanyc.com/",
+    "announcement": "A pizza drop",
+    "types": ["sms", "email", "instagram"],
+    "tone": <tone from /api/announce response>,
+    "sources": <sources from /api/announce response>,
+    "iteration": "make the SMS more urgent"
+  }'`;
+  navigator.clipboard.writeText(snippet).then(() => {
+    const btn = document.querySelector("#refine-code").closest(".api-block").querySelector("button");
+    if (btn) { const o = btn.textContent; btn.textContent = "Copied ✓"; setTimeout(() => btn.textContent = o, 1400); }
+  });
+}
+
+// Keep old name as alias in case anything references it
+function copyApiSnippet() { copyAnnounceSnippet(); }
+
+// ---------- Developer docs as Markdown ----------
+function buildDocsMarkdown() {
+  return `# Brand Voice Generator API
+
+Generate on-brand announcement copy programmatically. Two endpoints: \`/api/announce\` does research + generation in one shot; \`/api/refine\` skips research and iterates on existing copy.
+
+**Auth:** \`x-api-key: <password>\` — the name of our AI Slack channel. Reach out to Daniel if you need access.
+
+---
+
+## POST /api/announce
+
+Research brand voice + generate copy in one call (~60–90s).
+
+### Request
+
+\`\`\`bash
+curl -X POST https://tone-dashboard.vercel.app/api/announce \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: <password>" \\
+  -d '{
+    "name":           "Rubirosa",        // required
+    "website":        "https://...",     // required
+    "announcement":   "A pizza drop",   // required
+    "types":          ["sms","email"],   // required — see valid values below
+    "exampleContent": "..."              // optional
+  }'
+\`\`\`
+
+### Response
+
+\`\`\`json
+{
+  "brand":   { "name": "...", "website": "..." },
+  "tone":    { "adjectives": ["..."], "summary": "..." },
+  "sources": [{ "label": "...", "url": "..." }],
+
+  // whichever formats you requested:
+  "sms":            "...",
+  "emailSubject":   "...",
+  "emailBody":      "...",
+  "instagram":      "...",
+  "bannerHeadline": "...",
+  "bannerSubhead":  "...",
+  "push":           "...",
+  "newsletter":     "..."
+}
+\`\`\`
+
+> **Note:** Save \`tone\` and \`sources\` from this response — pass them to \`/api/refine\` for fast follow-up iterations without re-running research.
+
+---
+
+## POST /api/refine
+
+Iterate on existing copy — skips research, just rewrites (~10–20s).
+
+### Request
+
+\`\`\`bash
+curl -X POST https://tone-dashboard.vercel.app/api/refine \\
+  -H "Content-Type: application/json" \\
+  -H "x-api-key: <password>" \\
+  -d '{
+    "name":         "Rubirosa",
+    "website":      "https://...",
+    "announcement": "A pizza drop",
+    "types":        ["sms","email"],
+    "tone":         <tone from /api/announce response>,
+    "sources":      <sources from /api/announce response>,
+    "iteration":    "make the SMS more urgent"
+  }'
+\`\`\`
+
+### Response
+
+\`\`\`json
+{
+  // only copy fields — no tone or sources
+  // pass tone + sources through yourself for further iterations
+  "sms":            "...",
+  "emailSubject":   "...",
+  "emailBody":      "...",
+  "instagram":      "...",
+  "bannerHeadline": "...",
+  "bannerSubhead":  "...",
+  "push":           "...",
+  "newsletter":     "..."
+}
+\`\`\`
+
+---
+
+## types — valid values
+
+| Value | Description |
+|-------|-------------|
+| \`sms\` | 160-char SMS in brand voice |
+| \`email\` | Subject line + body, 2–4 paragraphs |
+| \`instagram\` | Caption, 2–5 lines |
+| \`banner\` | Headline (max 8 words) + subhead (max 20 words) |
+| \`push\` | Push notification, max 100 chars |
+| \`newsletter\` | Newsletter blurb, 2–3 paragraphs |
+| \`other\` | Custom format — supply \`otherLabel\` to name it |
+
+---
+
+## Notes
+
+| | |
+|-|-|
+| **Latency** | \`/api/announce\`: 60–90s (research + generation). \`/api/refine\`: ~10–20s (generation only) |
+| **Timeout** | Set your client timeout to at least 120s for \`/api/announce\` |
+| **Auth errors** | \`401\` means wrong or missing \`x-api-key\` header |
+`;
+}
+
+function copyDocsAsMarkdown(btn) {
+  navigator.clipboard.writeText(buildDocsMarkdown()).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = "Copied ✓";
+    setTimeout(() => btn.textContent = orig, 1400);
+  });
+}
+
+function downloadDocsAsMarkdown() {
+  const blob = new Blob([buildDocsMarkdown()], { type: "text/markdown" });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement("a");
+  a.href     = url;
+  a.download = "brand-voice-api.md";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+// ---------- Tone summary formatter ----------
+function formatToneSummary(text) {
+  // Split on sentence boundaries (. followed by space + capital letter)
+  const sentences = text.split(/\.\s+(?=[A-Z])/);
+  const withPeriods = sentences.map((s, i) => i < sentences.length - 1 ? s + '.' : s);
+
+  // Group into paragraphs of 2 sentences each
+  const paragraphs = [];
+  for (let i = 0; i < withPeriods.length; i += 2) {
+    paragraphs.push(withPeriods.slice(i, i + 2).join(' '));
+  }
+
+  return paragraphs.map(para => {
+    // Escape HTML then bold single-quoted phrases
+    const escaped = escapeHtml(para).replace(/'([^']{2,80})'/g, "<strong>'$1'</strong>");
+    return `<p>${escaped}</p>`;
+  }).join('');
+}
+
+// ---------- Utils ----------
+function escapeHtml(s) { return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
+function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+</script>
+</body>
+</html>
