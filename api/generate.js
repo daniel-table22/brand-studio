@@ -1,16 +1,17 @@
 // POST /api/generate
-// Uses Claude tool_use to guarantee structured output — no JSON parsing needed.
+// Stage 2 of the pipeline. Takes the committed tone from /api/research and
+// writes marketing copy in that voice.
+//
+// Uses Haiku (see _lib.js for why) and a deliberately minimal prompt.
+// The model anchors on the 3-5 tone adjectives + summary from stage 1.
+// Long rule lists push the model toward safe/generic — they are not here
+// on purpose.
+//
+// tool_use gives us typed per-format fields without having to parse free JSON.
 
-import { anthropic, MODEL, checkPassword, clamp } from "./_lib.js";
+import { anthropic, MODEL_GENERATE, checkPassword, clamp } from "./_lib.js";
 
-const CONTENT_SPECS = {
-  sms:        { label: "SMS",                 spec: "max 160 characters including any link. Feels like a text from a friend, not a marketing blast." },
-  email:      { label: "Email",               spec: "subject line (max 50 chars, lowercase if the brand writes lowercase) and body (2–4 short paragraphs, signed off the way the brand signs off)." },
-  instagram:  { label: "Instagram caption",   spec: "2–5 short lines, the way this brand actually writes captions. Emoji only if the brand uses emoji." },
-  banner:     { label: "Banner / Hero text",  spec: "a punchy headline (max 8 words) plus a one-sentence subhead (max 20 words)." },
-  push:       { label: "Push notification",   spec: "max 100 characters. Urgent and direct." },
-  newsletter: { label: "Newsletter blurb",    spec: "2–3 paragraphs suitable for embedding in a newsletter section." },
-};
+const VALID_TYPES = new Set(["sms", "email", "instagram", "banner", "push", "newsletter", "other"]);
 
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
@@ -18,101 +19,84 @@ export default async function handler(req, res) {
   const auth = checkPassword(req);
   if (!auth.ok) return res.status(auth.status).json({ error: auth.error });
 
-  const { name, website, announcement, exampleContent, types, otherLabel, tone, sources, iteration } = req.body || {};
+  const { name, website, announcement, exampleContent, types, otherLabel, tone, iteration } = req.body || {};
 
   if (!name || !announcement || !tone || !Array.isArray(types) || types.length === 0) {
     return res.status(400).json({ error: "Missing required fields." });
   }
 
-  const validTypes = types.filter((t) => CONTENT_SPECS[t] || t === "other");
+  const validTypes = types.filter((t) => VALID_TYPES.has(t));
   if (validTypes.length === 0) {
     return res.status(400).json({ error: "No valid content types requested." });
   }
 
-  // Build a dynamic tool schema based on the requested types.
-  // Tool use guarantees Claude returns valid structured data — no text parsing needed.
+  // Typed per-format output via tool_use. Descriptions are minimal — the voice
+  // does the shaping, not the spec.
   const properties = {};
   const required = [];
 
   for (const t of validTypes) {
     if (t === "sms") {
-      properties.sms = { type: "string", description: CONTENT_SPECS.sms.spec };
+      properties.sms = { type: "string", description: "SMS in the brand's voice, under 160 characters." };
       required.push("sms");
     } else if (t === "email") {
-      properties.emailSubject = { type: "string", description: "Email subject line, max 50 chars." };
-      properties.emailBody    = { type: "string", description: "Email body, 2–4 paragraphs." };
+      properties.emailSubject = { type: "string", description: "Email subject line in the brand's voice." };
+      properties.emailBody    = { type: "string", description: "Email body, 3-4 sentences in the brand's voice." };
       required.push("emailSubject", "emailBody");
     } else if (t === "instagram") {
-      properties.instagram = { type: "string", description: CONTENT_SPECS.instagram.spec };
+      properties.instagram = { type: "string", description: "Instagram caption in the brand's voice with a few relevant hashtags (omit hashtags if the brand doesn't use them)." };
       required.push("instagram");
     } else if (t === "banner") {
-      properties.bannerHeadline = { type: "string", description: "Headline, max 8 words." };
-      properties.bannerSubhead  = { type: "string", description: "Subhead, max 20 words." };
+      properties.bannerHeadline = { type: "string", description: "Headline, roughly 6-10 words." };
+      properties.bannerSubhead  = { type: "string", description: "One-sentence subhead." };
       required.push("bannerHeadline", "bannerSubhead");
     } else if (t === "push") {
-      properties.push = { type: "string", description: CONTENT_SPECS.push.spec };
+      properties.push = { type: "string", description: "Push notification, under 120 characters." };
       required.push("push");
     } else if (t === "newsletter") {
-      properties.newsletter = { type: "string", description: CONTENT_SPECS.newsletter.spec };
+      properties.newsletter = { type: "string", description: "Newsletter blurb in the brand's voice — a paragraph or two." };
       required.push("newsletter");
     } else if (t === "other") {
       const label = clamp(otherLabel || "Custom format", 60);
-      properties.other = { type: "string", description: `${label}: appropriate short marketing copy for this format.` };
+      properties.other = { type: "string", description: `${label}: copy for this format in the brand's voice.` };
       required.push("other");
     }
   }
-
-  const specLines = validTypes.map((t) => {
-    if (t === "other") return `${clamp(otherLabel || "Custom format", 60)}: ${properties.other?.description}`;
-    return `${CONTENT_SPECS[t].label}: ${CONTENT_SPECS[t].spec}`;
-  });
-
-  const checkedSources = (sources || [])
-    .filter((s) => s && s.checked)
-    .slice(0, 12)
-    .map((s) => `- ${clamp(s.label, 200)} (${clamp(s.url, 300)})`)
-    .join("\n");
 
   const adjectives = Array.isArray(tone.adjectives)
     ? tone.adjectives.slice(0, 8).map((a) => clamp(a, 40)).join(", ")
     : "";
 
-  const exampleSection = exampleContent
-    ? `\nExample content written in this brand's voice — treat as primary tone reference:\n---\n${clamp(exampleContent, 2000)}\n---\n`
+  const productExamples = Array.isArray(tone.product_examples)
+    ? tone.product_examples.slice(0, 6).map((p) => clamp(p, 120)).join(", ")
     : "";
 
-  const systemPrompt = `You are a copywriter for a hospitality CRM tool. Write in the exact voice of the brand — not generic hospitality.
+  const businessType = clamp(tone.business_type || "", 120);
 
-You will receive a tone-of-voice brief and an announcement topic. Use the write_announcement tool to return the copy.
+  const exampleSection = exampleContent
+    ? `\n\nAdditional reference content from the user (match this voice too):\n${clamp(exampleContent, 2000)}`
+    : "";
 
-Formats needed:
-${specLines.map((s, i) => `${i + 1}. ${s}`).join("\n")}
+  const iterationSection = iteration
+    ? `\n\nRefinement note — revise based on this feedback, keeping everything else: ${clamp(iteration, 500)}`
+    : "";
 
-Rules:
-- Match the brand's cadence, slang, capitalization, signoffs, and punctuation.
-- Mention the announcement concretely.
-- No placeholder text. No [brackets].
-- Never invent facts beyond the brief.
-- Do not use em-dashes (—) unless the brand clearly does.${exampleContent ? "\n- Prioritize the example content as your primary tone reference." : ""}`;
+  const systemPrompt = `You write marketing copy for food and hospitality brands. Match the brand's voice exactly — capitalization, cadence, personality. Return via the write_announcement tool.`;
 
-  const userPrompt = `Brand: ${clamp(name, 120)}
-Website: ${clamp(website || "", 300)}
+  const userPrompt = `Write marketing copy for a product drop for this brand.
 
-Tone adjectives: ${adjectives}
+Business: ${clamp(name, 120)}
+${businessType ? `Type: ${businessType}\n` : ""}Voice: ${clamp(tone.summary || "", 2000)}
+Adjectives: ${adjectives}
+${productExamples ? `Products they sell: ${productExamples}\n` : ""}
+What to announce: ${clamp(announcement, 500)}${exampleSection}${iterationSection}
 
-Tone summary:
-${clamp(tone.summary || "", 2000)}
-
-Research sources:
-${checkedSources || "(none)"}
-${exampleSection}
-What to announce:
-${clamp(announcement, 500)}${iteration ? `\n\nRefinement note — adjust the copy based on this feedback:\n${clamp(iteration, 500)}` : ""}`;
+Write everything in their exact voice.`;
 
   try {
     const message = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 2000,
+      model: MODEL_GENERATE,
+      max_tokens: 2048,
       system: systemPrompt,
       tools: [{
         name: "write_announcement",
@@ -123,7 +107,6 @@ ${clamp(announcement, 500)}${iteration ? `\n\nRefinement note — adjust the cop
       messages: [{ role: "user", content: userPrompt }],
     });
 
-    // Extract the tool call input — always valid structured data.
     const toolBlock = message.content.find((b) => b.type === "tool_use" && b.name === "write_announcement");
     if (!toolBlock) throw new Error("Model did not return structured output.");
 

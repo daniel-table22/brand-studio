@@ -35,6 +35,7 @@
   .main-panel.active { display: block; animation: fade 0.2s ease; }
 
   h1 { font-family: Georgia, "Times New Roman", serif; font-weight: 500; font-size: 34px; letter-spacing: -0.01em; margin: 0 0 8px; }
+  .build-tag { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 500; color: var(--muted); background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 3px 8px; vertical-align: middle; margin-left: 8px; letter-spacing: 0; }
   .sub { color: var(--muted); font-size: 14px; max-width: 680px; }
 
   /* Controls */
@@ -87,7 +88,35 @@
   .ex-panels-wrap { padding-top: 24px; min-height: 80px; }
   .ex-panel { display: none; }
   .ex-panel.active { display: block; animation: fade 0.2s ease; }
-  .not-run { color: var(--muted); font-size: 13px; padding: 20px 0; text-align: center; }
+  .not-run { color: var(--muted); font-size: 13px; padding: 40px 20px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 16px; }
+  .not-run p { margin: 0; max-width: 460px; line-height: 1.6; }
+  .ex-run-btn { background: var(--accent); color: #fff; border: none; padding: 10px 20px; border-radius: 6px; font-size: 14px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+  .ex-run-btn:hover { opacity: 0.85; }
+  .ex-run-btn:disabled { opacity: 0.5; cursor: wait; }
+
+  /* Restaurant Test Bed */
+  .tb-subtle { color: var(--muted); font-weight: 400; font-size: 14px; }
+  .tb-input-row { margin: 14px 0 24px; }
+  .tb-urls { width: 100%; min-height: 72px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; }
+  .tb-btn-row { display: flex; align-items: center; gap: 14px; margin-top: 10px; }
+  .tb-hint { color: var(--muted); font-size: 12px; }
+  .tb-result-card { border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; margin-bottom: 14px; background: var(--card); }
+  .tb-result-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 12px; }
+  .tb-result-title { font-family: Georgia, serif; font-size: 17px; font-weight: 500; margin: 0 0 3px; }
+  .tb-result-meta { font-size: 12px; color: var(--muted); }
+  .tb-result-meta a { color: var(--accent); text-decoration: none; }
+  .tb-result-meta a:hover { text-decoration: underline; }
+  .tb-query { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; color: var(--muted); background: var(--chip); padding: 2px 8px; border-radius: 4px; }
+  .tb-logo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; margin-top: 8px; }
+  .tb-logo-cell { border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: #fff; display: flex; flex-direction: column; transition: border-color 0.15s; }
+  .tb-logo-cell:hover { border-color: var(--accent); }
+  .tb-logo-img { width: 100%; aspect-ratio: 1; object-fit: contain; background: #fafafa; display: block; }
+  .tb-logo-meta { font-size: 10px; color: var(--muted); padding: 6px 8px; border-top: 1px solid var(--line); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tb-logo-meta a { color: var(--muted); text-decoration: none; }
+  .tb-logo-meta a:hover { color: var(--accent); }
+  .tb-empty { color: var(--muted); font-size: 13px; padding: 8px 0; }
+  .tb-error { color: #b94545; font-size: 13px; padding: 8px 0; }
+  .tb-loading { text-align: center; padding: 40px 20px; color: var(--muted); font-size: 13px; }
 
   /* Shared result layout (used in both .panel and .ex-panel) */
   .panel-hdr { margin-bottom: 20px; }
@@ -224,13 +253,14 @@
 
 <div class="wrap">
   <header class="top">
-    <h1>Brand Voice Generator</h1>
+    <h1>Brand Voice Generator <span class="build-tag" id="build-tag">v10</span></h1>
     <p class="sub">Describe what you're announcing, choose your formats, then generate — Claude researches the brand voice live and writes the copy.</p>
   </header>
 
   <nav class="main-tabs" role="tablist">
     <button class="main-tab active" data-panel="create"   onclick="switchMainTab('create')">Create</button>
     <button class="main-tab"        data-panel="examples" onclick="switchMainTab('examples')">Examples</button>
+    <button class="main-tab"        data-panel="testbed"  onclick="switchMainTab('testbed')">Restaurant Test Bed</button>
     <button class="main-tab"        data-panel="api"      onclick="switchMainTab('api')">API</button>
   </nav>
 
@@ -292,7 +322,7 @@
   <!-- ============ EXAMPLES PANEL ============ -->
   <div class="main-panel" id="main-panel-examples">
   <section class="controls" id="examples-card">
-    <p class="controls-title">Example brands</p>
+    <p class="controls-title">Example brands ✨</p>
     <p style="font-size:13px;color:var(--muted);margin:-12px 0 18px;">Five real hospitality brands. Each one researches itself on load, then drafts a brand-appropriate drop announcement. Edit the announcement and hit regenerate to try a different angle.</p>
 
     <div class="ex-tabs-bar" id="ex-tabs-bar">
@@ -304,13 +334,32 @@
     </div>
 
     <div class="ex-panels-wrap">
-      <div class="ex-panel active" id="ex-panel-crumbl">      <div class="not-run">Loading…</div></div>
-      <div class="ex-panel"        id="ex-panel-slanteddoor"> <div class="not-run">Queued…</div></div>
-      <div class="ex-panel"        id="ex-panel-chefico">     <div class="not-run">Queued…</div></div>
-      <div class="ex-panel"        id="ex-panel-helens">      <div class="not-run">Queued…</div></div>
-      <div class="ex-panel"        id="ex-panel-nari">        <div class="not-run">Queued…</div></div>
+      <div class="ex-panel active" id="ex-panel-crumbl">      <div class="not-run"><p>Click below to research this brand and generate a product drop in their voice.</p><button class="ex-run-btn" onclick="runExample('crumbl')">Generate Crumbl example</button></div></div>
+      <div class="ex-panel"        id="ex-panel-slanteddoor"> <div class="not-run"><p>Click below to research this brand and generate a product drop in their voice.</p><button class="ex-run-btn" onclick="runExample('slanteddoor')">Generate Slanted Door example</button></div></div>
+      <div class="ex-panel"        id="ex-panel-chefico">     <div class="not-run"><p>Click below to research this brand and generate a product drop in their voice.</p><button class="ex-run-btn" onclick="runExample('chefico')">Generate Che Fico example</button></div></div>
+      <div class="ex-panel"        id="ex-panel-helens">      <div class="not-run"><p>Click below to research this brand and generate a product drop in their voice.</p><button class="ex-run-btn" onclick="runExample('helens')">Generate Helen's Wines example</button></div></div>
+      <div class="ex-panel"        id="ex-panel-nari">        <div class="not-run"><p>Click below to research this brand and generate a product drop in their voice.</p><button class="ex-run-btn" onclick="runExample('nari')">Generate Nari example</button></div></div>
     </div>
   </section>
+  </div>
+
+  <!-- ============ TEST BED PANEL ============ -->
+  <div class="main-panel" id="main-panel-testbed">
+    <section class="examples-section">
+      <div class="examples-intro">
+        <h2>Restaurant Test Bed <span class="tb-subtle">· logo fetcher</span></h2>
+        <p class="ex-desc">Paste a comma-separated list of URLs. For each one, we fetch the page title and pull the primary logo from <code>img.logo.dev/{domain}</code>, then call Logo.dev's Brand Search for alternates matching the brand name.</p>
+      </div>
+      <div class="tb-input-row">
+        <textarea class="ctl-ta tb-urls" id="tb-urls" rows="3"
+          placeholder="https://helenswines.com, https://tartinebakery.com, nari.restaurant"></textarea>
+        <div class="tb-btn-row">
+          <button class="generate-btn" id="tb-run-btn" onclick="runLogoSearch()">Fetch logos →</button>
+          <span class="tb-hint">Max 20 URLs per run. Powered by Logo.dev.</span>
+        </div>
+      </div>
+      <div id="tb-results"></div>
+    </section>
   </div>
 
   <!-- ============ API PANEL ============ -->
@@ -611,10 +660,10 @@ async function submitPassword(e) {
       body: JSON.stringify({})
     });
     if (r.status === 401) { errEl.textContent = "Wrong password."; return; }
-    setPw(pw); unlock(); startExamplesAutorun();
+    setPw(pw); unlock();
   } catch { errEl.textContent = "Network error. Try again."; }
 }
-if (getPw()) { unlock(); startExamplesAutorun(); }
+if (getPw()) { unlock(); }
 
 // ---------- Top-level tabs ----------
 function switchMainTab(panel) {
@@ -662,84 +711,13 @@ function switchBrandTab(key) {
 // Default formats for example brands — keeps the examples view focused.
 const EXAMPLE_TYPES = ["sms", "email", "instagram"];
 
-// ---------- Research cache (localStorage, keyed by website URL) ----------
-// Research is expensive (~5-15¢ per call), tone rarely changes. Cache it.
-// Ignored / refreshed when the user clicks "Re-research".
-const RESEARCH_CACHE_PREFIX = "bvg-research-v1:";
-function loadCachedResearch(url) {
-  try {
-    const raw = localStorage.getItem(RESEARCH_CACHE_PREFIX + url);
-    return raw ? JSON.parse(raw) : null;
-  } catch { return null; }
-}
-function saveCachedResearch(url, data) {
-  try { localStorage.setItem(RESEARCH_CACHE_PREFIX + url, JSON.stringify(data)); } catch {}
-}
-function clearCachedResearch(url) {
-  try { localStorage.removeItem(RESEARCH_CACHE_PREFIX + url); } catch {}
-}
-
-// Auto-fire: research + generate for each of the 5 example brands.
-// Cached brands fire immediately (cheap); uncached stagger 3s apart so the
-// API doesn't get hammered on first page load.
-let _examplesStarted = false;
-function startExamplesAutorun() {
-  if (_examplesStarted) return;
-  _examplesStarted = true;
-  const exampleKeys = ["crumbl", "slanteddoor", "chefico", "helens", "nari"];
-  let uncachedCount = 0;
-  exampleKeys.forEach((key) => {
-    const hasCache = !!loadCachedResearch(BRANDS[key].website);
-    const delay = hasCache ? 0 : (uncachedCount++ * 3000);
-    setTimeout(() => runExample(key), delay);
-  });
-}
-
-// Per-example: research (or load from cache) → pre-fill announcement → generate.
-// Pass `{ force: true }` to bypass the cache and re-research.
-async function runExample(key, opts = {}) {
-  const force = !!opts.force;
+// Per-example: research → pre-fill announcement → generate.
+async function runExample(key) {
   const panelEl = document.getElementById(`ex-panel-${key}`);
   if (!panelEl) return;
   const brand = BRANDS[key];
   const tab = document.querySelector(`.ex-tab[data-key="${key}"]`);
   if (tab) tab.classList.add("generating");
-
-  // Cached path — skip the expensive research call.
-  const cached = force ? null : loadCachedResearch(brand.website);
-  if (cached) {
-    const { tone, sources, suggestedAnnouncement } = cached;
-    STATE[key] = { tone, sources, announcement: suggestedAnnouncement };
-    panelEl.innerHTML = `
-      <div class="panel-hdr">
-        <h3>${escapeHtml(brand.name)}</h3>
-        <div class="ph-meta">${escapeHtml(brand.category)}${brand.location ? " · " + escapeHtml(brand.location) : ""} · <a class="url" href="${escapeAttr(brand.website)}" target="_blank">${escapeHtml(brand.website)}</a></div>
-      </div>
-      ${buildSourcesBar(key, sources)}
-      <div class="loading-note"><span class="spinner"></span>Writing copy from cached research…</div>
-    `;
-    try {
-      const r = await fetch("/api/generate", {
-        method: "POST",
-        headers: { "Content-Type": "application/json", "x-app-password": getPw() },
-        body: JSON.stringify({
-          name: brand.name, website: brand.website,
-          announcement: suggestedAnnouncement, exampleContent: "",
-          types: EXAMPLE_TYPES, otherLabel: "", tone, sources
-        })
-      });
-      if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
-      const data = await r.json();
-      if (!r.ok) throw new Error(data.detail || data.error || "Generation failed.");
-      STATE[key].messages = data;
-      if (tab) tab.classList.remove("generating");
-      renderExampleResults(key, panelEl, data, sources, tone, suggestedAnnouncement);
-    } catch (err) {
-      if (tab) tab.classList.remove("generating");
-      panelEl.innerHTML += `<div class="error-box">Generation failed: ${escapeHtml(err.message)}</div>`;
-    }
-    return;
-  }
 
   // Loading state for research
   const firstFact = shuffleArray(SILLY_FACTS)[0];
@@ -801,7 +779,11 @@ async function runExample(key, opts = {}) {
     if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || "Research failed.");
-    tone = data.tone;
+    // Preserve business_type + product_examples on the tone object so generate has the same anchor.
+    tone = Object.assign({}, data.tone || {}, {
+      business_type: data.business_type || "",
+      product_examples: Array.isArray(data.product_examples) ? data.product_examples : [],
+    });
     sources = data.sources;
     suggestedAnnouncement = data.suggestedAnnouncement || "A limited drop of something only this brand would make";
   } catch (err) {
@@ -811,9 +793,6 @@ async function runExample(key, opts = {}) {
     return;
   }
   stepTimers.forEach(clearTimeout);
-
-  // Cache the research so next page load doesn't re-run it.
-  saveCachedResearch(brand.website, { tone, sources, suggestedAnnouncement });
 
   // Save research + default announcement into per-example state so regenerate works.
   STATE[key] = { tone, sources, announcement: suggestedAnnouncement };
@@ -856,14 +835,6 @@ async function runExample(key, opts = {}) {
   STATE[key].messages = messages;
   if (tab) tab.classList.remove("generating");
   renderExampleResults(key, panelEl, messages, sources, tone, suggestedAnnouncement);
-}
-
-// Force re-research for a single example (bypasses cache, then regenerates).
-function rerunResearch(key) {
-  const brand = BRANDS[key];
-  if (!brand) return;
-  clearCachedResearch(brand.website);
-  runExample(key, { force: true });
 }
 
 // Regenerate copy for a single example using the edited announcement + saved research.
@@ -930,7 +901,6 @@ function renderExampleResults(key, panelEl, messages, sources, tone, announcemen
       <div class="ctl-label">Announcement <span class="opt" style="color:var(--muted);">— inferred from ${escapeHtml(brand.name)}'s site. Edit and regenerate to try something else.</span></div>
       <textarea class="ctl-ta" id="ex-announcement-${key}" rows="2">${escapeHtml(announcement)}</textarea>
       <div class="refine-btn-row" style="margin-top:8px;gap:8px;">
-        <button class="ghost" onclick="rerunResearch('${key}')" title="Re-run the research step (cached by default)">Re-research</button>
         <button class="ghost ex-regen-btn" onclick="regenerateExample('${key}')">Regenerate</button>
       </div>
     </div>
@@ -1025,7 +995,11 @@ async function runGenerate(key, panelEl, inputs) {
     if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
     const data = await r.json();
     if (!r.ok) throw new Error(data.error || "Research failed.");
-    tone = data.tone; sources = data.sources;
+    tone = Object.assign({}, data.tone || {}, {
+      business_type: data.business_type || "",
+      product_examples: Array.isArray(data.product_examples) ? data.product_examples : [],
+    });
+    sources = data.sources;
   } catch (err) {
     stepTimers.forEach(clearTimeout);
     if (tab) tab.classList.remove("generating");
@@ -1453,6 +1427,78 @@ function formatToneSummary(text) {
     const escaped = escapeHtml(para).replace(/'([^']{2,80})'/g, "<strong>'$1'</strong>");
     return `<p>${escaped}</p>`;
   }).join('');
+}
+
+// ---------- Restaurant Test Bed ----------
+async function runLogoSearch() {
+  const ta = document.getElementById("tb-urls");
+  const btn = document.getElementById("tb-run-btn");
+  const out = document.getElementById("tb-results");
+  if (!ta || !btn || !out) return;
+
+  const raw = ta.value.trim();
+  if (!raw) return;
+
+  // Split on commas OR newlines — either is fine.
+  const urls = raw.split(/[,\n]/).map(s => s.trim()).filter(Boolean);
+  if (urls.length === 0) return;
+
+  btn.disabled = true;
+  const origText = btn.textContent;
+  btn.textContent = "Fetching…";
+  out.innerHTML = `<div class="tb-loading">Fetching page titles and running image searches across ${urls.length} URL${urls.length !== 1 ? "s" : ""}…</div>`;
+
+  try {
+    const r = await fetch("/api/logo-search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ urls })
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || data.detail || "Logo search failed.");
+    renderLogoResults(data.results || []);
+  } catch (err) {
+    out.innerHTML = `<div class="error-box">${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = origText;
+  }
+}
+
+function renderLogoResults(results) {
+  const out = document.getElementById("tb-results");
+  if (!out) return;
+  if (!results.length) { out.innerHTML = `<div class="tb-empty">No results.</div>`; return; }
+
+  out.innerHTML = results.map(r => {
+    const titleLine = r.pageTitle ? escapeHtml(r.pageTitle) : `<span class="tb-subtle">(no page title)</span>`;
+    const queryPill = r.query ? `<span class="tb-query">${escapeHtml(r.query)}</span>` : "";
+    const body = !r.ok
+      ? `<div class="tb-error">${escapeHtml(r.error || "Failed")}</div>`
+      : (r.logos && r.logos.length
+        ? `<div class="tb-logo-grid">${r.logos.map(l => `
+            <a class="tb-logo-cell" href="${escapeAttr(l.source || l.url)}" target="_blank" rel="noopener" title="${escapeAttr(l.title || "")}">
+              <img class="tb-logo-img" src="${escapeAttr(l.thumbnail || l.url)}" alt="${escapeAttr(l.title || "logo")}" loading="lazy" referrerpolicy="no-referrer">
+              <div class="tb-logo-meta">${escapeHtml(l.source || "")}</div>
+            </a>`).join("")}</div>`
+        : `<div class="tb-empty">No image results.</div>`);
+
+    return `
+      <div class="tb-result-card">
+        <div class="tb-result-head">
+          <div>
+            <h3 class="tb-result-title">${titleLine}</h3>
+            <div class="tb-result-meta">
+              <a href="${escapeAttr(r.url)}" target="_blank" rel="noopener">${escapeHtml(r.url)}</a>
+              ${r.brandName ? ` · brand: ${escapeHtml(r.brandName)}` : ""}
+            </div>
+          </div>
+          ${queryPill}
+        </div>
+        ${body}
+      </div>`;
+  }).join("");
 }
 
 // ---------- Utils ----------

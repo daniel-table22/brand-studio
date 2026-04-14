@@ -7,9 +7,14 @@ export const anthropic = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-// Model used for both research and generation.
-// Sonnet is fast + cheap + great at tone. Swap to opus-4-6 if you want top quality.
-export const MODEL = "claude-sonnet-4-6";
+// Two-stage pipeline uses two different models on purpose:
+// - Research: Sonnet + web_search. Commits to a small set of tone descriptors.
+// - Generate: Haiku. Once the voice is committed, Haiku executes voice-in-a-box
+//   extremely well and cheaply. Sonnet on the generate step over-reasons about
+//   constraints and smooths everything toward the same polite rhythm.
+export const MODEL = "claude-sonnet-4-6";            // legacy alias — research default
+export const MODEL_RESEARCH = "claude-sonnet-4-6";
+export const MODEL_GENERATE = "claude-haiku-4-5-20251001";
 
 // Very simple shared-password gate.
 // The frontend sends the password in an `x-app-password` header.

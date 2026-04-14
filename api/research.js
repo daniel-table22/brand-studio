@@ -1,10 +1,11 @@
 // POST /api/research
 // Body: { name: string, website: string }
-// Returns: { tone: { adjectives: string[], summary: string }, sources: Array<{ label, url, checked }> }
+// Returns: { tone:{adjectives,summary}, business_type, product_examples, suggestedAnnouncement, sources }
 //
-// Uses Claude with the built-in web_search tool to scour the brand's
-// website, Instagram, press coverage and founder interviews, then
-// extracts a tone signature and a list of sources.
+// Stage 1 of a two-stage pipeline. The whole point of this stage is to
+// commit to a small set of tone descriptors the generate stage can anchor
+// against. Keep the output small and opinionated — long fingerprints and
+// verbatim voice samples were making the generate stage worse, not better.
 
 import { anthropic, MODEL, checkPassword, extractText, parseJsonLoose, clamp } from "./_lib.js";
 
@@ -24,41 +25,34 @@ export default async function handler(req, res) {
   const brandName = clamp(name, 120);
   const brandWebsite = clamp(website, 300);
 
-  const systemPrompt = `You are a brand voice researcher for a hospitality CRM tool.
-Your job is to analyze a hospitality business's public presence and extract a precise tone-of-voice signature that a copywriter could use to draft marketing messages in that exact voice.
-
-You have access to a web_search tool. Use it aggressively — search for:
-1. The brand's own website (homepage, About/Story page, menu pages)
-2. The brand's Instagram handle and captions
-3. Press coverage, founder interviews, podcast appearances
-4. Newsletter archives or blog posts if public
-
-Do 3-6 searches total. Be efficient.
-
-When you have enough signal, return ONLY a JSON object (no prose, no code fences) with this exact shape:
+  const systemPrompt = `You are a brand strategist specialising in food, hospitality, and small producer brands. Research the brand's tone of voice and return ONLY valid JSON — no surrounding text, no markdown fences. Use exactly this shape:
 
 {
   "tone": {
-    "adjectives": ["5 short adjective tags", "..."],
-    "summary": "2-3 sentences describing how this brand writes. Be specific: mention cadence, signature phrases, sentence length, whether they use first person, emoji habits, signoffs, things they avoid. Ground it in actual phrases you saw."
+    "adjectives": ["string", "string", "string"],
+    "summary": "string"
   },
-  "suggestedAnnouncement": "A short (max 15 words) brand-appropriate drop announcement this business would plausibly make, inferred from what they actually sell. E.g. for a cookie brand: 'A limited-run weekly cookie flavor coming back'; for a natural wine shop: 'A rare magnum drop from a favorite small producer'; for a Thai restaurant with retail: 'A small-batch pantry sauce from the chef's family recipe'. Be specific to THIS brand.",
+  "business_type": "string",
+  "product_examples": ["string", "string", "string"],
+  "suggestedAnnouncement": "string",
   "sources": [
-    { "label": "Short description of what this source is + the key quote or signal", "url": "https://...", "checked": true }
+    { "label": "string", "url": "string" }
   ]
 }
 
-Rules:
-- 5-7 sources. The most useful ones should have "checked": true, less useful ones "checked": false.
-- Every source must have a real URL you actually found via web_search.
-- Labels should be specific, e.g. "Resy interview — calls wines 'kickass' and 'baller'", not "Resy article".
-- suggestedAnnouncement must be grounded in what you actually saw they sell or do — not generic.
-- No extra keys. No markdown. Just the JSON object.`;
+adjectives: 3–5 words that capture how they write (e.g. "Warm", "Playful", "Lowercase", "Direct", "Irreverent")
+summary: 2–3 sentences on their voice, cadence, capitalization, personality, and any signature phrases or signoffs
+business_type: short label like "artisan bakery", "natural wine shop", "small-batch hot sauce maker"
+product_examples: 3 real or likely products this business sells
+suggestedAnnouncement: a short (max 15 words) brand-appropriate drop announcement grounded in what they actually sell
+sources: every URL you actually read — label should be short and human-readable like "tartinebakery.com — About" or "Instagram @tartine — captions". Include 3–8 sources.
+
+If the website doesn't load or you can't find enough signal, make a reasonable inference from the business name and any other sources you find.`;
 
   try {
     const message = await anthropic.messages.create({
       model: MODEL,
-      max_tokens: 2000,
+      max_tokens: 1024,
       system: systemPrompt,
       tools: [
         {
@@ -70,7 +64,12 @@ Rules:
       messages: [
         {
           role: "user",
-          content: `Research the tone of voice for this hospitality business:\n\nName: ${brandName}\nWebsite: ${brandWebsite}\n\nReturn the JSON object as specified.`,
+          content: `Research the tone of voice for this business.
+
+Business name: ${brandName}
+Website: ${brandWebsite}
+
+Search their website, Instagram, any press coverage or reviews, and other public materials to understand how they write and communicate. Return only JSON.`,
         },
       ],
     });
@@ -78,7 +77,6 @@ Rules:
     const text = extractText(message);
     const parsed = parseJsonLoose(text);
 
-    // Minimal validation
     if (!parsed.tone || !Array.isArray(parsed.sources)) {
       throw new Error("Model returned an unexpected shape.");
     }

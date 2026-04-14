@@ -5,8 +5,10 @@
   "description": "Brand tone-of-voice drop announcement dashboard. Reads a hospitality brand's website, Instagram and press coverage, then drafts SMS / Email / Instagram announcements in that brand's voice.",
   "type": "module",
   "scripts": {
-    "dev": "vercel dev",
-    "deploy": "vercel --prod"
+    "bump": "node scripts/bump-version.js",
+    "dev": "npm run bump && node server.js",
+    "vercel-dev": "npm run bump && vercel dev",
+    "deploy": "npm run bump && vercel --prod"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.87.0"

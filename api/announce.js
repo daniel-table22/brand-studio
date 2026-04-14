@@ -1,44 +1,31 @@
 // POST /api/announce
 //
-// All-in-one endpoint: researches brand voice then writes announcement copy.
-// Chains /api/research and /api/generate logic in a single call.
+// All-in-one endpoint: researches brand voice (Sonnet + web_search) then
+// writes announcement copy (Haiku). Chains /api/research and /api/generate
+// logic in a single call.
 //
-// Auth: x-api-key: whats-my-vibe
+// The two stages must stay separate even though they're in one handler —
+// doing both in a single model call degrades copy quality significantly
+// because the model doesn't have committed tone descriptors to anchor on.
+//
+// Auth: x-api-key: howiai
 //
 // Request body:
-//   name          string   required  Brand name
-//   website       string   required  Brand website URL
-//   announcement  string   required  What to announce (e.g. "A pizza product drop")
-//   types         string[] required  Formats: ["sms","email","instagram","banner","push","newsletter","other"]
-//   exampleContent string  optional  Example copy in this brand's voice
-//   otherLabel    string   optional  Label for the "other" format
+//   name           string   required  Brand name
+//   website        string   required  Brand website URL
+//   announcement   string   required  What to announce (e.g. "A pizza product drop")
+//   types          string[] required  Formats: ["sms","email","instagram","banner","push","newsletter","other"]
+//   exampleContent string   optional  Example copy in this brand's voice
+//   otherLabel     string   optional  Label for the "other" format
 //
 // Response:
-//   tone          { adjectives: string[], summary: string }
-//   sources       Array<{ label: string, url: string }>
-//   sms           string   (if requested)
-//   emailSubject  string   (if requested)
-//   emailBody     string   (if requested)
-//   instagram     string   (if requested)
-//   bannerHeadline string  (if requested)
-//   bannerSubhead  string  (if requested)
-//   push          string   (if requested)
-//   newsletter    string   (if requested)
-//   other         string   (if requested)
+//   brand, tone, business_type, product_examples, suggestedAnnouncement, sources,
+//   + one or more of: sms, emailSubject, emailBody, instagram, bannerHeadline,
+//     bannerSubhead, push, newsletter, other (depending on requested types)
 
-import { anthropic, MODEL, extractText, parseJsonLoose, clamp } from "./_lib.js";
+import { anthropic, MODEL_RESEARCH, MODEL_GENERATE, extractText, parseJsonLoose, clamp } from "./_lib.js";
 
 const API_KEY = "howiai";
-
-const CONTENT_SPECS = {
-  sms:        { label: "SMS",                spec: "max 160 characters including any link. Feels like a text from a friend, not a marketing blast." },
-  email:      { label: "Email",              spec: "subject line (max 50 chars, lowercase if the brand writes lowercase) and body (2–4 short paragraphs, signed off the way the brand signs off)." },
-  instagram:  { label: "Instagram caption",  spec: "2–5 short lines, the way this brand actually writes captions. Emoji only if the brand uses emoji." },
-  banner:     { label: "Banner / Hero text", spec: "a punchy headline (max 8 words) plus a one-sentence subhead (max 20 words)." },
-  push:       { label: "Push notification",  spec: "max 100 characters. Urgent and direct." },
-  newsletter: { label: "Newsletter blurb",   spec: "2–3 paragraphs suitable for embedding in a newsletter section." },
-};
-
 const VALID_TYPES = new Set(["sms", "email", "instagram", "banner", "push", "newsletter", "other"]);
 
 export default async function handler(req, res) {
@@ -63,47 +50,43 @@ export default async function handler(req, res) {
   const brandName    = clamp(name, 120);
   const brandWebsite = clamp(website, 300);
 
-  // ── Step 1: Research brand voice ──────────────────────────────────────────
+  // ── Stage 1: Research brand voice ─────────────────────────────────────────
 
-  const researchSystem = `You are a brand voice researcher for a hospitality CRM tool.
-Your job is to analyze a hospitality business's public presence and extract a precise tone-of-voice signature that a copywriter could use to draft marketing messages in that exact voice.
-
-You have access to a web_search tool. Use it aggressively — search for:
-1. The brand's own website (homepage, About/Story page, menu pages)
-2. The brand's Instagram handle and captions
-3. Press coverage, founder interviews, podcast appearances
-4. Newsletter archives or blog posts if public
-
-Do 3-6 searches total. Be efficient.
-
-When you have enough signal, return ONLY a JSON object (no prose, no code fences) with this exact shape:
+  const researchSystem = `You are a brand strategist specialising in food, hospitality, and small producer brands. Research the brand's tone of voice and return ONLY valid JSON — no surrounding text, no markdown fences. Use exactly this shape:
 
 {
   "tone": {
-    "adjectives": ["5 short adjective tags", "..."],
-    "summary": "2-3 sentences describing how this brand writes. Be specific: mention cadence, signature phrases, sentence length, whether they use first person, emoji habits, signoffs, things they avoid. Ground it in actual phrases you saw."
+    "adjectives": ["string", "string", "string"],
+    "summary": "string"
   },
-  "suggestedAnnouncement": "A short (max 15 words) brand-appropriate drop announcement this business would plausibly make, inferred from what they actually sell.",
+  "business_type": "string",
+  "product_examples": ["string", "string", "string"],
+  "suggestedAnnouncement": "string",
   "sources": [
-    { "label": "Short description of what this source is + the key quote or signal", "url": "https://...", "checked": true }
+    { "label": "string", "url": "string" }
   ]
 }
 
-Rules:
-- 5-7 sources. The most useful ones should have "checked": true, less useful ones "checked": false.
-- Every source must have a real URL you actually found via web_search.
-- Labels should be specific, e.g. "Resy interview — calls wines 'kickass' and 'baller'", not "Resy article".
-- suggestedAnnouncement must be grounded in what you actually saw they sell or do — not generic.
-- No extra keys. No markdown. Just the JSON object.`;
+adjectives: 3–5 words that capture how they write (e.g. "Warm", "Playful", "Lowercase", "Direct", "Irreverent")
+summary: 2–3 sentences on their voice, cadence, capitalization, personality, and any signature phrases or signoffs
+business_type: short label like "artisan bakery", "natural wine shop", "small-batch hot sauce maker"
+product_examples: 3 real or likely products this business sells
+suggestedAnnouncement: a short (max 15 words) brand-appropriate drop announcement grounded in what they actually sell
+sources: every URL you actually read — label should be short and human-readable. Include 3–8 sources.
 
-  let tone, sources, suggestedAnnouncement;
+If the website doesn't load or you can't find enough signal, make a reasonable inference from the business name and any other sources you find.`;
+
+  let tone, businessType, productExamples, suggestedAnnouncement, sources;
   try {
     const researchMsg = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 2000,
+      model: MODEL_RESEARCH,
+      max_tokens: 1024,
       system: researchSystem,
       tools: [{ type: "web_search_20250305", name: "web_search", max_uses: 6 }],
-      messages: [{ role: "user", content: `Research the tone of voice for this hospitality business:\n\nName: ${brandName}\nWebsite: ${brandWebsite}\n\nReturn the JSON object as specified.` }],
+      messages: [{
+        role: "user",
+        content: `Research the tone of voice for this business.\n\nBusiness name: ${brandName}\nWebsite: ${brandWebsite}\n\nSearch their website, Instagram, any press coverage or reviews, and other public materials to understand how they write and communicate. Return only JSON.`,
+      }],
     });
 
     const researchText = extractText(researchMsg);
@@ -114,83 +97,77 @@ Rules:
     }
 
     tone                  = researchData.tone;
-    sources               = researchData.sources;
+    businessType          = researchData.business_type || "";
+    productExamples       = Array.isArray(researchData.product_examples) ? researchData.product_examples : [];
     suggestedAnnouncement = researchData.suggestedAnnouncement || "";
+    sources               = researchData.sources;
   } catch (err) {
     console.error("announce/research error", err);
     return res.status(500).json({ error: "Research failed.", detail: err?.message || String(err) });
   }
 
-  // ── Step 2: Generate copy ─────────────────────────────────────────────────
+  // ── Stage 2: Generate copy ────────────────────────────────────────────────
 
   const properties = {};
   const required   = [];
 
   for (const t of validTypes) {
-    if (t === "sms")         { properties.sms           = { type: "string", description: CONTENT_SPECS.sms.spec };                                                        required.push("sms"); }
-    else if (t === "email")  { properties.emailSubject  = { type: "string", description: "Email subject line, max 50 chars." };
-                               properties.emailBody     = { type: "string", description: "Email body, 2–4 paragraphs." };                                                  required.push("emailSubject", "emailBody"); }
-    else if (t === "instagram") { properties.instagram  = { type: "string", description: CONTENT_SPECS.instagram.spec };                                                   required.push("instagram"); }
-    else if (t === "banner") { properties.bannerHeadline = { type: "string", description: "Headline, max 8 words." };
-                               properties.bannerSubhead  = { type: "string", description: "Subhead, max 20 words." };                                                      required.push("bannerHeadline", "bannerSubhead"); }
-    else if (t === "push")   { properties.push          = { type: "string", description: CONTENT_SPECS.push.spec };                                                       required.push("push"); }
-    else if (t === "newsletter") { properties.newsletter = { type: "string", description: CONTENT_SPECS.newsletter.spec };                                                 required.push("newsletter"); }
-    else if (t === "other")  { const label = clamp(otherLabel || "Custom format", 60);
-                               properties.other         = { type: "string", description: `${label}: appropriate short marketing copy for this format.` };                  required.push("other"); }
+    if (t === "sms") {
+      properties.sms = { type: "string", description: "SMS in the brand's voice, under 160 characters." };
+      required.push("sms");
+    } else if (t === "email") {
+      properties.emailSubject = { type: "string", description: "Email subject line in the brand's voice." };
+      properties.emailBody    = { type: "string", description: "Email body, 3-4 sentences in the brand's voice." };
+      required.push("emailSubject", "emailBody");
+    } else if (t === "instagram") {
+      properties.instagram = { type: "string", description: "Instagram caption in the brand's voice with a few relevant hashtags (omit hashtags if the brand doesn't use them)." };
+      required.push("instagram");
+    } else if (t === "banner") {
+      properties.bannerHeadline = { type: "string", description: "Headline, roughly 6-10 words." };
+      properties.bannerSubhead  = { type: "string", description: "One-sentence subhead." };
+      required.push("bannerHeadline", "bannerSubhead");
+    } else if (t === "push") {
+      properties.push = { type: "string", description: "Push notification, under 120 characters." };
+      required.push("push");
+    } else if (t === "newsletter") {
+      properties.newsletter = { type: "string", description: "Newsletter blurb in the brand's voice — a paragraph or two." };
+      required.push("newsletter");
+    } else if (t === "other") {
+      const label = clamp(otherLabel || "Custom format", 60);
+      properties.other = { type: "string", description: `${label}: copy for this format in the brand's voice.` };
+      required.push("other");
+    }
   }
-
-  const specLines = validTypes.map((t) => {
-    if (t === "other") return `${clamp(otherLabel || "Custom format", 60)}: ${properties.other?.description}`;
-    return `${CONTENT_SPECS[t].label}: ${CONTENT_SPECS[t].spec}`;
-  });
-
-  const checkedSources = sources
-    .filter((s) => s && s.checked)
-    .slice(0, 12)
-    .map((s) => `- ${clamp(s.label, 200)} (${clamp(s.url, 300)})`)
-    .join("\n");
 
   const adjectives = Array.isArray(tone.adjectives)
     ? tone.adjectives.slice(0, 8).map((a) => clamp(a, 40)).join(", ")
     : "";
 
-  const exampleSection = exampleContent
-    ? `\nExample content written in this brand's voice — treat as primary tone reference:\n---\n${clamp(exampleContent, 2000)}\n---\n`
+  const productsLine = productExamples.length
+    ? productExamples.slice(0, 6).map((p) => clamp(p, 120)).join(", ")
     : "";
 
-  const generateSystem = `You are a copywriter for a hospitality CRM tool. Write in the exact voice of the brand — not generic hospitality.
+  const exampleSection = exampleContent
+    ? `\n\nAdditional reference content from the user (match this voice too):\n${clamp(exampleContent, 2000)}`
+    : "";
 
-You will receive a tone-of-voice brief and an announcement topic. Use the write_announcement tool to return the copy.
+  const generateSystem = `You write marketing copy for food and hospitality brands. Match the brand's voice exactly — capitalization, cadence, personality. Return via the write_announcement tool.`;
 
-Formats needed:
-${specLines.map((s, i) => `${i + 1}. ${s}`).join("\n")}
+  const generateUser = `Write marketing copy for a product drop for this brand.
 
-Rules:
-- Match the brand's cadence, slang, capitalization, signoffs, and punctuation.
-- Mention the announcement concretely.
-- No placeholder text. No [brackets].
-- Never invent facts beyond the brief.
-- Do not use em-dashes (—) unless the brand clearly does.${exampleContent ? "\n- Prioritize the example content as your primary tone reference." : ""}`;
+Business: ${brandName}
+${businessType ? `Type: ${clamp(businessType, 120)}\n` : ""}Voice: ${clamp(tone.summary || "", 2000)}
+Adjectives: ${adjectives}
+${productsLine ? `Products they sell: ${productsLine}\n` : ""}
+What to announce: ${clamp(announcement, 500)}${exampleSection}
 
-  const generateUser = `Brand: ${brandName}
-Website: ${clamp(brandWebsite, 300)}
-
-Tone adjectives: ${adjectives}
-
-Tone summary:
-${clamp(tone.summary || "", 2000)}
-
-Research sources:
-${checkedSources || "(none)"}
-${exampleSection}
-What to announce:
-${clamp(announcement, 500)}`;
+Write everything in their exact voice.`;
 
   let copy;
   try {
     const generateMsg = await anthropic.messages.create({
-      model: MODEL,
-      max_tokens: 2000,
+      model: MODEL_GENERATE,
+      max_tokens: 2048,
       system: generateSystem,
       tools: [{
         name: "write_announcement",
@@ -212,6 +189,8 @@ ${clamp(announcement, 500)}`;
   return res.status(200).json({
     brand: { name: brandName, website: brandWebsite },
     tone,
+    business_type: businessType,
+    product_examples: productExamples,
     suggestedAnnouncement,
     sources: sources.map(({ label, url }) => ({ label, url })),
     ...copy,
