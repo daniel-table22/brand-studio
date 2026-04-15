@@ -668,6 +668,13 @@
         <button onclick="vaPuppeteerAnalyse()" id="va-pup-btn">Capture &amp; Analyse</button>
       </div>
       <div id="va-pup-status" style="margin-top:12px;"></div>
+
+      <!-- Brand Logo — fetched from logo.dev in parallel with the puppeteer audit -->
+      <div id="va-pup-logo-wrap" style="display:none;margin-top:16px;">
+        <div class="sec-label" style="margin-bottom:8px;">Brand Logo</div>
+        <div id="va-pup-logo-inner"></div>
+      </div>
+
       <div id="va-pup-screenshot-wrap" style="display:none;margin-top:16px;">
         <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
           <div class="sec-label">Captured Screenshot</div>
@@ -1875,7 +1882,11 @@ async function vaPuppeteerAnalyse() {
   btn.textContent = "Launching browser…";
   status.innerHTML = `<div class="loading-note"><span class="spinner"></span> Launching browser, loading page, suppressing banners — takes 10–20 seconds…</div>`;
   screenshotWrap.style.display = "none";
+  document.getElementById("va-pup-logo-wrap").style.display = "none";
+  document.getElementById("va-pup-logo-inner").innerHTML = "";
   document.getElementById("va-results").classList.remove("open");
+
+  vaFetchLogo(url);
 
   try {
     const r = await fetch("/api/puppeteer-audit", {
@@ -1922,6 +1933,114 @@ async function vaPuppeteerAnalyse() {
   } finally {
     btn.disabled = false;
     btn.textContent = orig;
+  }
+}
+
+// ---------- Visual Audit — Logo fetch (fires in parallel with Puppeteer audit) ----------
+async function vaFetchLogo(url) {
+  const wrap  = document.getElementById("va-pup-logo-wrap");
+  const inner = document.getElementById("va-pup-logo-inner");
+  if (!wrap || !inner) return;
+
+  try {
+    const r = await fetch("/api/logo-search", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ urls: [url] }),
+    });
+    if (!r.ok) return;
+    const data = await r.json();
+    const logo = data?.results?.[0]?.logos?.[0];
+    if (!logo?.url) return;
+
+    // Build DOM imperatively so crossOrigin is set BEFORE src (required for canvas alpha check)
+    const container = document.createElement("div");
+    container.style.cssText = "display:inline-flex;flex-direction:column;align-items:center;gap:8px;";
+
+    const imgWrap = document.createElement("div");
+    imgWrap.style.cssText = "width:120px;height:120px;border:1px solid var(--line);border-radius:6px;" +
+      "background:#fff;display:flex;align-items:center;justify-content:center;padding:8px;overflow:hidden;";
+
+    const img = document.createElement("img");
+    img.id = "va-pup-logo-img";
+    img.alt = "Brand logo";
+    img.crossOrigin = "anonymous";   // must be set before src for canvas alpha check
+    img.dataset.logoUrl = logo.url;
+    img.style.cssText = "max-width:100%;max-height:100%;object-fit:contain;";
+
+    const btn = document.createElement("button");
+    btn.id = "va-pup-remove-bg-btn";
+    btn.className = "ghost";
+    btn.style.cssText = "font-size:11px;padding:4px 10px;";
+    btn.textContent = "Remove BG";
+    btn.onclick = () => vaRemoveBg(btn);
+
+    imgWrap.appendChild(img);
+    container.appendChild(imgWrap);
+    container.appendChild(btn);
+    inner.appendChild(container);
+    wrap.style.display = "block";
+
+    // After the image loads: check if it already has an alpha channel.
+    // Auto-run remove.bg only when no transparency is detected.
+    img.addEventListener("load", () => {
+      if (!vaLogoHasAlpha(img)) {
+        vaRemoveBg(btn);  // auto-run — opaque logo detected
+      } else {
+        btn.style.display = "none";  // already transparent — button not needed
+      }
+    }, { once: true });
+
+    img.src = logo.url;  // set src last
+  } catch {
+    // Silent fail — logo is non-critical
+  }
+}
+
+// Returns true if the image has any pixel with alpha < 255 (i.e. is already transparent).
+// Requires crossOrigin="anonymous" on the img element. If the canvas read fails (e.g.
+// CORS not supported by the server), assumes opaque (returns false) so remove.bg runs.
+function vaLogoHasAlpha(imgEl) {
+  try {
+    const canvas = document.createElement("canvas");
+    const w = Math.min(imgEl.naturalWidth  || 40, 80);
+    const h = Math.min(imgEl.naturalHeight || 40, 80);
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    ctx.drawImage(imgEl, 0, 0, w, h);
+    const { data } = ctx.getImageData(0, 0, w, h);
+    for (let i = 3; i < data.length; i += 4) {
+      if (data[i] < 255) return true;  // found a transparent pixel
+    }
+    return false;  // fully opaque
+  } catch {
+    return false;  // canvas tainted or CORS blocked — assume opaque, run remove.bg
+  }
+}
+
+async function vaRemoveBg(btn) {
+  const img = document.getElementById("va-pup-logo-img");
+  if (!img || !btn) return;
+  const imageUrl = img.dataset.logoUrl;
+  if (!imageUrl) return;
+
+  btn.disabled = true;
+  btn.textContent = "Removing…";
+  try {
+    const r = await fetch("/api/remove-bg", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ imageUrl }),
+    });
+    const data = await r.json();
+    if (!r.ok || data.error) throw new Error(data.error || "Failed");
+    img.src = data.resultDataUrl;
+    img.style.background = "transparent";
+    btn.style.display = "none";
+  } catch {
+    btn.disabled = false;
+    btn.textContent = "Remove BG";
   }
 }
 

@@ -1,9 +1,10 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "functions": {
-    "api/research.js":  { "maxDuration": 60 },
-    "api/generate.js":  { "maxDuration": 60 },
-    "api/announce.js":  { "maxDuration": 120 },
-    "api/refine.js":    { "maxDuration": 60 }
+    "api/research.js":   { "maxDuration": 60 },
+    "api/generate.js":   { "maxDuration": 60 },
+    "api/announce.js":   { "maxDuration": 120 },
+    "api/refine.js":     { "maxDuration": 60 },
+    "api/remove-bg.js":  { "maxDuration": 30 }
   }
 }
