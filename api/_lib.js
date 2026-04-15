@@ -20,11 +20,9 @@ export const MODEL_GENERATE = "claude-haiku-4-5-20251001";
 // The frontend sends the password in an `x-app-password` header.
 // If it doesn't match SHARED_PASSWORD env var, the request is rejected.
 export function checkPassword(req) {
-  const provided = req.headers["x-app-password"];
   const expected = process.env.SHARED_PASSWORD;
-  if (!expected) {
-    return { ok: false, status: 500, error: "Server misconfigured: SHARED_PASSWORD not set." };
-  }
+  if (!expected) return { ok: true }; // no password set — open access
+  const provided = req.headers["x-app-password"];
   if (!provided || provided !== expected) {
     return { ok: false, status: 401, error: "Unauthorized. Check your password." };
   }

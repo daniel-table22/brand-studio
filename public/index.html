@@ -182,6 +182,62 @@
 
   footer.foot { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); color: var(--muted); font-size: 12px; }
 
+  /* Typography specimens */
+  .typo-specimens { display: flex; flex-direction: column; gap: 0; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+  .typo-specimen { padding: 20px 24px; background: var(--card); border-bottom: 1px solid var(--line); }
+  .typo-specimen:last-child { border-bottom: none; }
+  .typo-specimen-meta { display: flex; align-items: baseline; gap: 8px; margin-bottom: 10px; }
+  .typo-specimen-role { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; font-weight: 700; color: var(--muted); }
+  .typo-specimen-family { font-size: 11px; color: var(--muted); }
+  .typo-specimen-tag { font-size: 10px; color: var(--muted); background: var(--chip); border: 1px solid var(--line); border-radius: 999px; padding: 1px 7px; }
+  .typo-specimen-display { font-size: 36px; line-height: 1.1; letter-spacing: -0.01em; color: var(--ink); }
+  .typo-specimen-body { font-size: 16px; line-height: 1.6; color: var(--ink); }
+  .typo-specimen-detail { font-size: 11px; color: var(--muted); margin-top: 6px; }
+
+  /* Visual Audit */
+  .va-subtabs { display: flex; gap: 0; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
+  .va-subtab { background: transparent; border: none; border-bottom: 2px solid transparent; color: var(--muted); padding: 12px 20px; font-size: 13px; font-weight: 500; border-radius: 0; cursor: pointer; transition: color 0.15s; margin-bottom: -1px; }
+  .va-subtab:hover:not(.active) { color: var(--ink); }
+  .va-subtab.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  .va-subpanel { display: none; }
+  .va-subpanel.active { display: block; animation: fade 0.2s ease; }
+  .va-paste-zone { border: 2px dashed var(--line); border-radius: 12px; padding: 48px 32px; text-align: center; cursor: pointer; transition: border-color 0.2s, background 0.2s; background: var(--card); margin-bottom: 20px; }
+  .va-paste-zone:hover, .va-paste-zone.drag-over { border-color: var(--accent); background: var(--accent-soft); }
+  .va-paste-zone.has-image { padding: 0; border-style: solid; overflow: hidden; }
+  .va-paste-zone .va-hint { color: var(--muted); font-size: 14px; line-height: 1.7; pointer-events: none; }
+  .va-paste-zone .va-hint kbd { font-family: ui-monospace, Menlo, monospace; font-size: 13px; background: var(--chip); border: 1px solid var(--line); border-radius: 5px; padding: 2px 7px; color: var(--ink); }
+  .va-paste-zone img.va-preview { width: 100%; max-height: 400px; object-fit: contain; display: block; background: #f7f4ef; }
+  .va-actions { display: flex; align-items: center; gap: 12px; margin-bottom: 24px; }
+  .va-iframe-wrap { border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--card); margin-bottom: 16px; }
+  .va-iframe-bar { display: flex; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--line); background: #f7f4ef; }
+  .va-iframe-bar input { flex: 1; border: 1px solid var(--line); border-radius: 6px; padding: 7px 12px; font: inherit; font-size: 13px; background: #fff; }
+  .va-iframe-bar input:focus { outline: none; border-color: var(--accent); }
+  .va-iframe { width: 100%; height: 520px; border: none; display: block; }
+  .va-iframe-msg { padding: 40px 24px; text-align: center; color: var(--muted); font-size: 13px; display: none; }
+  .va-iframe-msg.show { display: block; }
+  .va-url-input-row { display: flex; gap: 10px; margin-bottom: 8px; }
+  .va-url-input-row input { flex: 1; border: 1px solid var(--line); border-radius: 8px; padding: 10px 14px; font: inherit; font-size: 14px; background: #fcfaf5; }
+  .va-url-input-row input:focus { outline: none; border-color: var(--accent); }
+  .va-hint-text { font-size: 12px; color: var(--muted); margin: 0 0 20px; line-height: 1.6; }
+  .va-results { display: none; }
+  .va-results.open { display: block; animation: fade 0.3s ease; }
+  .va-section { margin-bottom: 28px; }
+  .va-colors { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .va-swatch { display: flex; flex-direction: column; gap: 6px; min-width: 80px; }
+  .va-swatch-block { width: 80px; height: 56px; border-radius: 8px; border: 1px solid rgba(0,0,0,0.07); flex-shrink: 0; }
+  .va-swatch-hex { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--ink); font-weight: 600; }
+  .va-swatch-role { font-size: 11px; color: var(--muted); }
+  .va-swatch-notes { font-size: 11px; color: var(--muted); font-style: italic; max-width: 90px; line-height: 1.4; }
+  .va-type-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-top: 10px; }
+  .va-type-card { background: var(--chip); border-radius: 8px; padding: 14px 16px; }
+  .va-type-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); font-weight: 700; margin-bottom: 8px; }
+  .va-type-family { font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 2px; }
+  .va-type-detail { font-size: 12px; color: var(--muted); line-height: 1.5; }
+  .va-style-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .va-style-chip { background: var(--chip); border: 1px solid var(--line); padding: 5px 13px; border-radius: 999px; font-size: 13px; color: #4a4a45; }
+  .va-summary-box { font-size: 14px; color: #333; background: var(--accent-soft); padding: 14px 16px; border-radius: 8px; border-left: 3px solid var(--accent); line-height: 1.6; margin-top: 10px; }
+  .va-layout-box { font-size: 14px; color: #444; background: var(--chip); padding: 13px 16px; border-radius: 8px; margin-top: 10px; line-height: 1.6; }
+
   /* Developer API section */
   .api-section { border: 1px solid var(--line); border-radius: 12px; margin-bottom: 20px; background: var(--card); overflow: hidden; }
   .api-header-row { display: flex; align-items: center; gap: 10px; padding: 14px 20px; }
@@ -237,19 +293,8 @@
   body.locked .wrap { filter: blur(4px); pointer-events: none; }
 </style>
 </head>
-<body class="locked">
+<body>
 
-<div id="gate">
-  <div class="box">
-    <h2>Drop Dashboard</h2>
-    <p>Enter the shared password to continue.</p>
-    <form onsubmit="submitPassword(event)">
-      <input type="password" id="pw-input" autofocus autocomplete="current-password" placeholder="Password" />
-      <button type="submit">Unlock</button>
-      <div class="err" id="pw-err"></div>
-    </form>
-  </div>
-</div>
 
 <div class="wrap">
   <header class="top">
@@ -258,14 +303,15 @@
   </header>
 
   <nav class="main-tabs" role="tablist">
-    <button class="main-tab active" data-panel="create"   onclick="switchMainTab('create')">Create</button>
+    <button class="main-tab"        data-panel="create"   onclick="switchMainTab('create')">Create</button>
     <button class="main-tab"        data-panel="examples" onclick="switchMainTab('examples')">Examples</button>
     <button class="main-tab"        data-panel="testbed"  onclick="switchMainTab('testbed')">Restaurant Test Bed</button>
     <button class="main-tab"        data-panel="api"      onclick="switchMainTab('api')">API</button>
+    <button class="main-tab active"  data-panel="visual"   onclick="switchMainTab('visual')">Visual Audit</button>
   </nav>
 
   <!-- ============ CREATE PANEL ============ -->
-  <div class="main-panel active" id="main-panel-create">
+  <div class="main-panel" id="main-panel-create">
   <!-- Main form -->
   <section class="controls">
     <p class="controls-title">Generate announcement copy</p>
@@ -517,6 +563,174 @@
   <footer class="foot">Live prototype · Research + copy generated by Claude with web search. Every Generate click hits the API.</footer>
 </div>
 
+<!-- Banner preview modal -->
+<div id="banner-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.65);z-index:200;align-items:center;justify-content:center;padding:24px;">
+  <div style="background:var(--card);border-radius:14px;padding:24px;width:100%;max-width:520px;max-height:90vh;overflow:auto;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <span style="font-family:Georgia,serif;font-size:17px;font-weight:500;" id="banner-modal-title">Banner</span>
+      <div style="display:flex;gap:8px;">
+        <button onclick="copyBannerHtml()" class="ghost" style="font-size:12px;">Copy HTML</button>
+        <button onclick="closeBannerModal()" class="ghost" style="font-size:12px;">Close</button>
+      </div>
+    </div>
+    <iframe id="banner-iframe" srcdoc="" style="width:100%;border:none;border-radius:8px;background:#f5f5f5;" scrolling="no"></iframe>
+  </div>
+</div>
+
+<!-- ============ VISUAL AUDIT PANEL ============ -->
+<div class="main-panel active" id="main-panel-visual" style="max-width:1100px;margin:0 auto;padding:0 32px 96px;">
+  <div style="padding-top:32px;">
+    <h2 style="font-family:Georgia,serif;font-weight:500;font-size:26px;margin:0 0 6px;">Visual Audit</h2>
+    <p class="sub" style="margin-bottom:24px;">Four ways to analyse a brand's visual language.</p>
+
+    <!-- Sub-tabs -->
+    <nav class="va-subtabs">
+      <button class="va-subtab"        onclick="vaSubTab('screenshot')">Screenshot</button>
+      <button class="va-subtab"        onclick="vaSubTab('live')">Live Preview</button>
+      <button class="va-subtab"        onclick="vaSubTab('css')">CSS / Typography</button>
+      <button class="va-subtab active"  onclick="vaSubTab('puppeteer')">Puppeteer</button>
+    </nav>
+
+    <!-- ① Screenshot -->
+    <div class="va-subpanel" id="va-sub-screenshot">
+      <p class="va-hint-text">Paste a screenshot with <kbd style="font-family:ui-monospace,Menlo,monospace;font-size:12px;background:var(--chip);border:1px solid var(--line);border-radius:4px;padding:1px 6px;">⌘V</kbd>, drag and drop, or upload a file. Claude vision analyses the colours, type, and style directly from the image.</p>
+      <div id="va-paste-zone" class="va-paste-zone" tabindex="0"
+           onclick="document.getElementById('va-file-input').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="vaHandleDrop(event)">
+        <div class="va-hint" id="va-hint">
+          <div style="font-size:32px;margin-bottom:12px;opacity:0.3;">⌘</div>
+          <strong>Paste a screenshot</strong> <kbd>⌘V</kbd><br>
+          or click to upload a file
+        </div>
+        <img id="va-preview" class="va-preview" src="" alt="Screenshot preview" style="display:none;" />
+      </div>
+      <input type="file" id="va-file-input" accept="image/*" style="display:none;" onchange="vaHandleFile(this.files[0])">
+      <div class="va-actions" id="va-actions" style="display:none;">
+        <button onclick="vaAnalyse()" id="va-btn">Analyse screenshot</button>
+        <button class="ghost" onclick="vaClear()" style="font-size:12px;">Clear</button>
+      </div>
+    </div>
+
+    <!-- ② Live Preview -->
+    <div class="va-subpanel" id="va-sub-live">
+      <p class="va-hint-text">Load a site in the preview below, navigate to the page you want to capture, then click <strong>Capture &amp; Analyse</strong>. The screenshot is taken server-side so it works even if the iframe is blocked.</p>
+      <div class="va-iframe-wrap">
+        <div class="va-iframe-bar">
+          <input type="url" id="va-live-url" placeholder="https://yourbrand.com"
+                 onkeydown="if(event.key==='Enter')vaLoadIframe()" />
+          <button onclick="vaLoadIframe()" id="va-load-btn" style="white-space:nowrap;">Load preview</button>
+        </div>
+        <div id="va-iframe-msg" class="va-iframe-msg">Enter a URL above to load a preview.</div>
+        <iframe id="va-iframe" class="va-iframe" style="display:none;"
+                sandbox="allow-scripts allow-same-origin allow-forms"></iframe>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:8px;">
+        <button onclick="vaLiveCapture()" id="va-capture-btn">Capture &amp; Analyse</button>
+        <span class="va-hint-text" style="margin:0;">Screenshot is taken server-side — works even if the preview above shows a blocked page.</span>
+      </div>
+    </div>
+
+    <!-- ③ CSS / Typography -->
+    <div class="va-subpanel" id="va-sub-css">
+      <p class="va-hint-text">Fetches the page's stylesheets server-side and extracts colour values, font declarations, and design tokens. Cookie banners and overlays are filtered out.</p>
+
+      <!-- Brand quick-tabs -->
+      <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:16px;">
+        <div class="va-subtabs" style="border:none;margin:0;flex:1;flex-wrap:wrap;gap:4px;">
+          <button class="va-subtab" id="vab-crumbl"      onclick="vaCssBrandTab('crumbl')">Crumbl</button>
+          <button class="va-subtab" id="vab-slanteddoor" onclick="vaCssBrandTab('slanteddoor')">Slanted Door</button>
+          <button class="va-subtab" id="vab-chefico"     onclick="vaCssBrandTab('chefico')">Che Fico</button>
+          <button class="va-subtab" id="vab-helens"      onclick="vaCssBrandTab('helens')">Helen's Wines</button>
+          <button class="va-subtab" id="vab-nari"        onclick="vaCssBrandTab('nari')">Nari</button>
+        </div>
+        <button onclick="vaCssGenerateAll()" id="va-gen-all-btn" style="white-space:nowrap;flex-shrink:0;">Generate All</button>
+      </div>
+
+      <!-- URL input (pre-fills from brand tab) -->
+      <div class="va-url-input-row">
+        <input type="url" id="va-css-url" placeholder="https://yourbrand.com"
+               onkeydown="if(event.key==='Enter')vaCssAnalyse()" />
+        <button onclick="vaCssAnalyse()" id="va-css-btn">Analyse CSS</button>
+      </div>
+
+      <!-- Per-brand inline results (separate from shared results) -->
+      <div id="va-brand-results"></div>
+    </div>
+
+    <!-- ④ Puppeteer -->
+    <div class="va-subpanel active" id="va-sub-puppeteer">
+      <p class="va-hint-text">Launches a real browser, suppresses cookie banners and chat widgets, then captures a clean screenshot and analyses the visual language with Claude.</p>
+      <div class="va-url-input-row">
+        <input type="url" id="va-pup-url" placeholder="https://yourbrand.com" value="https://chefico.com"
+               onkeydown="if(event.key==='Enter')vaPuppeteerAnalyse()" />
+        <button onclick="vaPuppeteerAnalyse()" id="va-pup-btn">Capture &amp; Analyse</button>
+      </div>
+      <div id="va-pup-status" style="margin-top:12px;"></div>
+      <div id="va-pup-screenshot-wrap" style="display:none;margin-top:16px;">
+        <div style="display:flex;align-items:baseline;gap:10px;margin-bottom:8px;">
+          <div class="sec-label">Captured Screenshot</div>
+          <span id="va-pup-platform" style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);background:var(--chip);border:1px solid var(--line);border-radius:999px;padding:2px 8px;"></span>
+        </div>
+        <div style="max-height:500px;overflow-y:auto;border-radius:8px;border:1px solid var(--line);">
+          <img id="va-pup-screenshot" style="width:100%;display:block;" alt="Captured screenshot" />
+        </div>
+      </div>
+
+      <!-- Typography specimens -->
+      <div id="va-pup-typo-wrap" style="display:none;margin-top:24px;">
+        <div class="sec-label" style="margin-bottom:12px;">Typography</div>
+        <div id="va-pup-typo-specimens"></div>
+      </div>
+
+      <!-- Partner card -->
+      <div id="va-pup-card-wrap" style="display:none;margin-top:24px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+          <div class="sec-label">Partner Card</div>
+          <button id="va-pup-card-copy-btn" class="ghost" style="font-size:12px;display:none;" onclick="vaCopyCardHtml()">Copy HTML</button>
+        </div>
+        <div id="va-pup-card-status"></div>
+        <div style="display:flex;justify-content:center;">
+          <iframe id="va-pup-card-iframe"
+                  style="width:400px;height:600px;border:1px solid var(--line);border-radius:8px;display:none;"
+                  sandbox="allow-scripts"
+                  scrolling="no"></iframe>
+        </div>
+      </div>
+    </div>
+
+    <!-- Status + shared results -->
+    <div id="va-status" style="margin-top:16px;"></div>
+
+    <div class="va-results" id="va-results">
+      <div id="va-confidence-bar" style="display:none;margin-bottom:20px;"></div>
+
+      <div class="va-section">
+        <div class="sec-label">Colour Palette</div>
+        <div class="va-colors" id="va-colors"></div>
+      </div>
+      <div class="va-section">
+        <div class="sec-label">Typography</div>
+        <div class="va-type-grid" id="va-type-grid"></div>
+      </div>
+      <div class="va-section">
+        <div class="sec-label">Style</div>
+        <div class="va-style-chips" id="va-style-chips"></div>
+      </div>
+      <div class="va-section">
+        <div class="sec-label">Summary</div>
+        <div class="va-summary-box" id="va-summary"></div>
+      </div>
+      <div class="va-section">
+        <div class="sec-label">Layout &amp; Spacing</div>
+        <div class="va-layout-box" id="va-layout"></div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
 <script>
 const BRANDS = {
   crumbl:      { name: "Crumbl",            category: "Cookie Brand",              location: "Logan, UT",          website: "https://crumblcookies.com/" },
@@ -645,7 +859,7 @@ function shuffleArray(arr) {
 function getPw() { return sessionStorage.getItem("pw") || ""; }
 function setPw(v) { sessionStorage.setItem("pw", v); }
 function lock()   { document.body.classList.add("locked");    document.getElementById("gate").style.display = "flex"; }
-function unlock() { document.body.classList.remove("locked"); document.getElementById("gate").style.display = "none"; }
+function unlock() { document.body.classList.remove("locked"); }
 
 async function submitPassword(e) {
   e.preventDefault();
@@ -663,7 +877,7 @@ async function submitPassword(e) {
     setPw(pw); unlock();
   } catch { errEl.textContent = "Network error. Try again."; }
 }
-if (getPw()) { unlock(); }
+unlock(); // no password required in dev
 
 // ---------- Top-level tabs ----------
 function switchMainTab(panel) {
@@ -1501,9 +1715,762 @@ function renderLogoResults(results) {
   }).join("");
 }
 
+// ---------- Banner generation ----------
+let bannerHtmlCache = {};
+
+async function generateBanner(key, openModal = false) {
+  const brand = BRANDS[key];
+  const cached = vaCssBrandCache[key];
+  if (!brand || cached?.state !== "done") return;
+  if (bannerHtmlCache[key]) { if (openModal) openBannerModal(brand.name, bannerHtmlCache[key]); return; }
+
+  const btns = document.querySelectorAll(`[onclick="generateBanner('${key}', true)"]`);
+  btns.forEach(b => { b.disabled = true; b.textContent = "Generating sign…"; });
+
+  if (openModal) openBannerModal(brand.name, null);
+
+  try {
+    const r = await fetch("/api/banner-generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({
+        brandName: brand.name,
+        businessType: brand.category,
+        auditData: cached.data,
+      }),
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" — "));
+
+    bannerHtmlCache[key] = data.html;
+    // Update modal if it's open for this brand
+    const title = document.getElementById("banner-modal-title");
+    if (title?.textContent === `${brand.name} — Closed Sign`) openBannerModal(brand.name, data.html);
+    btns.forEach(b => { b.disabled = false; b.textContent = "View Closed Sign"; });
+  } catch (err) {
+    btns.forEach(b => { b.disabled = false; b.textContent = "Generate Closed Sign"; });
+  }
+}
+
+function openBannerModal(title, html) {
+  const modal = document.getElementById("banner-modal");
+  const iframe = document.getElementById("banner-iframe");
+  document.getElementById("banner-modal-title").textContent = title ? `${title} — Closed Sign` : "Closed Sign";
+  modal.style.display = "flex";
+  if (html) {
+    iframe.srcdoc = html;
+    // Auto-size iframe height after load
+    iframe.onload = () => {
+      try {
+        const h = iframe.contentDocument?.body?.scrollHeight;
+        if (h) iframe.style.height = (h + 8) + "px";
+      } catch {}
+    };
+  } else {
+    iframe.srcdoc = `<body style="font-family:sans-serif;padding:40px 20px;text-align:center;color:#888;">
+      <div style="display:inline-block;width:18px;height:18px;border:2px solid #ddd;border-top-color:#c8553d;border-radius:50%;animation:spin 0.8s linear infinite;"></div>
+      <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+    </body>`;
+    iframe.style.height = "120px";
+  }
+}
+
+function closeBannerModal() {
+  document.getElementById("banner-modal").style.display = "none";
+}
+
+function copyBannerHtml() {
+  const iframe = document.getElementById("banner-iframe");
+  const html = iframe.srcdoc;
+  if (!html) return;
+  navigator.clipboard.writeText(html).then(() => {
+    const btn = document.querySelector("#banner-modal button[onclick='copyBannerHtml()']");
+    if (btn) { const t = btn.textContent; btn.textContent = "Copied!"; setTimeout(() => btn.textContent = t, 1500); }
+  });
+}
+
 // ---------- Utils ----------
 function escapeHtml(s) { return String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;"); }
 function escapeAttr(s) { return escapeHtml(s).replace(/"/g, "&quot;"); }
+
+// ---------- Visual Audit — sub-tab switching ----------
+function vaSubTab(name) {
+  document.querySelectorAll(".va-subtab").forEach((t, i) => {
+    const names = ["screenshot", "live", "css", "puppeteer"];
+    t.classList.toggle("active", names[i] === name);
+  });
+  document.querySelectorAll(".va-subpanel").forEach(p => {
+    p.classList.toggle("active", p.id === `va-sub-${name}`);
+  });
+  if (name === "puppeteer") {
+    const status = document.getElementById("va-pup-status");
+    const wrap = document.getElementById("va-pup-screenshot-wrap");
+    // Only auto-run if there's no result already showing
+    if (!wrap.style.display || wrap.style.display === "none") {
+      if (!status.innerHTML) vaPuppeteerAnalyse();
+    }
+  }
+}
+
+// ---------- Visual Audit — Live Preview path ----------
+function vaLoadIframe() {
+  let url = document.getElementById("va-live-url").value.trim();
+  if (!url) return;
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+  const iframe = document.getElementById("va-iframe");
+  const msg = document.getElementById("va-iframe-msg");
+  iframe.style.display = "block";
+  msg.classList.remove("show");
+  iframe.src = url;
+}
+
+async function vaLiveCapture() {
+  let url = document.getElementById("va-live-url").value.trim();
+  if (!url) {
+    document.getElementById("va-status").innerHTML =
+      `<div class="error-box">Enter a URL first.</div>`;
+    return;
+  }
+  if (!/^https?:\/\//i.test(url)) url = "https://" + url;
+
+  const btn = document.getElementById("va-capture-btn");
+  const status = document.getElementById("va-status");
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = "Capturing…";
+  status.innerHTML = `<div class="loading-note"><span class="spinner"></span> Taking screenshot server-side and analysing — this takes 10–20s…</div>`;
+  document.getElementById("va-results").classList.remove("open");
+
+  try {
+    const r = await fetch("/api/preview-audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ url }),
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" — "));
+    vaRenderResults(data);
+    status.innerHTML = "";
+  } catch (err) {
+    status.innerHTML = `<div class="error-box">${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+// ---------- Visual Audit — Puppeteer path ----------
+async function vaPuppeteerAnalyse() {
+  const input = document.getElementById("va-pup-url");
+  const btn = document.getElementById("va-pup-btn");
+  const status = document.getElementById("va-pup-status");
+  const screenshotWrap = document.getElementById("va-pup-screenshot-wrap");
+  const url = input.value.trim();
+  if (!url) { input.focus(); return; }
+
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = "Launching browser…";
+  status.innerHTML = `<div class="loading-note"><span class="spinner"></span> Launching browser, loading page, suppressing banners — takes 10–20 seconds…</div>`;
+  screenshotWrap.style.display = "none";
+  document.getElementById("va-results").classList.remove("open");
+
+  try {
+    const r = await fetch("/api/puppeteer-audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ url }),
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" — "));
+
+    // Show the captured screenshot + platform badge
+    if (data.screenshot) {
+      document.getElementById("va-pup-screenshot").src = data.screenshot;
+      document.getElementById("va-pup-platform").textContent = data.platform || "";
+      screenshotWrap.style.display = "block";
+    }
+
+    vaRenderResults(data);
+    status.innerHTML = "";
+
+    // Fire CSS audit in parallel to get exact font names, then generate card
+    const cssPromise = fetch("/api/css-audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ url }),
+    }).then(r => r.json()).catch(() => null);
+
+    // Show typography specimens from vision data immediately, upgrade when CSS audit returns
+    vaRenderTypographySpecimen(data.typography, null);
+
+    // Wait for CSS audit, then merge typography + generate card with exact fonts
+    cssPromise.then(cssData => {
+      const mergedTypo = cssData?.typography
+        ? mergeTypography(data.typography, cssData.typography)
+        : data.typography;
+      const mergedAudit = { ...data, typography: mergedTypo };
+      vaRenderTypographySpecimen(mergedTypo, cssData?.typography);
+      vaGeneratePartnerCard(url, mergedAudit);
+    });
+
+  } catch (err) {
+    status.innerHTML = `<div class="error-box">${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+// Prefer CSS audit font families (exact) over vision approximations
+function mergeTypography(visionTypo = {}, cssTypo = {}) {
+  const merge = (v, c) => ({
+    ...v,
+    ...c,
+    family: c?.family || v?.family,
+  });
+  return {
+    heading: merge(visionTypo.heading, cssTypo.heading),
+    body:    merge(visionTypo.body,    cssTypo.body),
+    accent:  merge(visionTypo.accent,  cssTypo.accent),
+  };
+}
+
+// ---- Google Fonts: map common paid/custom fonts to close GF alternatives ----
+const GF_FALLBACKS = {
+  "brandon grotesque":    "Nunito Sans",
+  "brandon text":         "Nunito Sans",
+  "proxima nova":         "Montserrat",
+  "futura":               "Jost",
+  "gotham":               "Montserrat",
+  "avenir":               "Nunito",
+  "ff din":               "Barlow",
+  "din":                  "Barlow",
+  "circular":             "DM Sans",
+  "gilroy":               "Raleway",
+  "helvetica neue":       "Inter",
+  "helvetica":            "Inter",
+  "apercu":               "Inter",
+  "gt walsheim":          "DM Sans",
+  "canela":               "Cormorant Garamond",
+  "tiempos":              "Lora",
+  "graphik":              "Inter",
+  "national":             "Libre Baskerville",
+  "chronicle":            "Playfair Display",
+  "domaine":              "Playfair Display",
+  "akzidenz grotesk":     "IBM Plex Sans",
+  "freight":              "Merriweather",
+  "calluna":              "Lora",
+  "adobe garamond":       "EB Garamond",
+  "sabon":                "EB Garamond",
+};
+
+function resolveGoogleFont(family) {
+  if (!family) return null;
+  const key = family.toLowerCase().replace(/['"]/g, "").trim();
+  return GF_FALLBACKS[key] || family;
+}
+
+function googleFontsUrl(families) {
+  // families: array of font family names
+  const unique = [...new Set(families.filter(Boolean))];
+  if (!unique.length) return null;
+  const params = unique.map(f => {
+    const name = f.trim().replace(/\s+/g, "+");
+    return `family=${name}:ital,wght@0,300;0,400;0,500;0,700;1,400`;
+  }).join("&");
+  return `https://fonts.googleapis.com/css2?${params}&display=swap`;
+}
+
+function vaRenderTypographySpecimen(typo = {}, cssTypo = null) {
+  const wrap = document.getElementById("va-pup-typo-wrap");
+  const container = document.getElementById("va-pup-typo-specimens");
+  if (!typo || (!typo.heading?.family && !typo.body?.family)) return;
+
+  wrap.style.display = "block";
+
+  const roles = [
+    { key: "heading", label: "Display / Heading", sampleText: "The Quick Brown Fox", size: "display" },
+    { key: "body",    label: "Body",               sampleText: "Fresh handmade pasta, delivered monthly. Great food starts with great ingredients.", size: "body" },
+    { key: "accent",  label: "Accent / Label",     sampleText: "JOIN TODAY · EST. 2015", size: "body" },
+  ];
+
+  // Collect all families to load
+  const families = roles.map(r => {
+    const raw = typo[r.key]?.family;
+    if (!raw) return null;
+    return resolveGoogleFont(raw);
+  }).filter(Boolean);
+
+  const gfUrl = googleFontsUrl(families);
+
+  // Inject Google Fonts link if not already present
+  if (gfUrl) {
+    const existing = document.getElementById("va-typo-gf-link");
+    if (existing) existing.remove();
+    const link = document.createElement("link");
+    link.id = "va-typo-gf-link";
+    link.rel = "stylesheet";
+    link.href = gfUrl;
+    document.head.appendChild(link);
+  }
+
+  container.innerHTML = `<div class="typo-specimens">` + roles.map(r => {
+    const t = typo[r.key];
+    if (!t?.family && !t?.usage) return "";
+    const rawFamily = t.family || t.usage || "";
+    const resolved = resolveGoogleFont(rawFamily);
+    const isFallback = resolved.toLowerCase() !== rawFamily.toLowerCase().replace(/['"]/g, "").trim();
+    const weight = t.weight?.match(/\d+/)?.[0] || (r.key === "heading" ? "700" : "400");
+    const detail = [t.weight, t.style, t.usage].filter(Boolean).join(" · ");
+    return `
+      <div class="typo-specimen">
+        <div class="typo-specimen-meta">
+          <span class="typo-specimen-role">${escapeHtml(r.label)}</span>
+          <span class="typo-specimen-family">${escapeHtml(rawFamily)}</span>
+          ${isFallback ? `<span class="typo-specimen-tag">approx. ${escapeHtml(resolved)}</span>` : ""}
+        </div>
+        <div class="${r.size === "display" ? "typo-specimen-display" : "typo-specimen-body"}"
+             style="font-family:'${escapeAttr(resolved)}',${r.key === "heading" ? "Georgia,serif" : "system-ui,sans-serif"};font-weight:${weight};">
+          ${escapeHtml(r.sampleText)}
+        </div>
+        ${detail ? `<div class="typo-specimen-detail">${escapeHtml(detail)}</div>` : ""}
+      </div>`;
+  }).join("") + `</div>`;
+}
+
+let _partnerCardHtml = null;
+
+async function vaGeneratePartnerCard(url, auditData) {
+  const wrap = document.getElementById("va-pup-card-wrap");
+  const statusEl = document.getElementById("va-pup-card-status");
+  const iframe = document.getElementById("va-pup-card-iframe");
+  const copyBtn = document.getElementById("va-pup-card-copy-btn");
+
+  _partnerCardHtml = null;
+  wrap.style.display = "block";
+  iframe.style.display = "none";
+  copyBtn.style.display = "none";
+  statusEl.innerHTML = `<div class="loading-note"><span class="spinner"></span> Generating partner card…</div>`;
+
+  try {
+    const brandName = new URL(url.startsWith("http") ? url : "https://" + url).hostname.replace(/^www\./, "");
+    const r = await fetch("/api/card-generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ brandName, auditData }),
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" — "));
+
+    _partnerCardHtml = data.html;
+    iframe.srcdoc = data.html;
+    iframe.style.display = "block";
+    copyBtn.style.display = "";
+    statusEl.innerHTML = "";
+  } catch (err) {
+    statusEl.innerHTML = `<div class="error-box">${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function vaCopyCardHtml() {
+  if (!_partnerCardHtml) return;
+  navigator.clipboard.writeText(_partnerCardHtml).then(() => {
+    const btn = document.getElementById("va-pup-card-copy-btn");
+    const orig = btn.textContent;
+    btn.textContent = "Copied!";
+    setTimeout(() => { btn.textContent = orig; }, 1500);
+  });
+}
+
+// ---------- Visual Audit — CSS brand tabs ----------
+const vaCssBrandCache = {}; // key → { state: 'loading'|'done'|'error', data?, error? }
+
+function vaCssBrandTab(key) {
+  // Highlight active tab
+  document.querySelectorAll('[id^="vab-"]').forEach(t =>
+    t.classList.toggle("active", t.id === `vab-${key}`)
+  );
+  // Pre-fill URL
+  const brand = BRANDS[key];
+  if (brand) document.getElementById("va-css-url").value = brand.website;
+  // Show cached result if available
+  const cached = vaCssBrandCache[key];
+  if (cached?.state === "done") {
+    vaRenderBrandResults(key, cached.data);
+  } else if (cached?.state === "error") {
+    document.getElementById("va-brand-results").innerHTML =
+      `<div class="error-box" style="margin-top:16px;">${escapeHtml(cached.error)}</div>`;
+    document.getElementById("va-results").classList.remove("open");
+  } else {
+    document.getElementById("va-brand-results").innerHTML = "";
+    document.getElementById("va-results").classList.remove("open");
+  }
+}
+
+function vaRenderBrandResults(key, data) {
+  // Use shared renderer but output into the brand-results div
+  const brand = BRANDS[key];
+  const container = document.getElementById("va-brand-results");
+  container.innerHTML = `
+    <div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--line);">
+      <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.08em;color:var(--muted);font-weight:700;margin-bottom:16px;">
+        ${escapeHtml(brand?.name || key)}
+        ${data.confidence ? " — " + vaConfidenceBadge(data.confidence) : ""}
+        ${data.confidence_notes ? `<span style="font-weight:400;text-transform:none;letter-spacing:0;margin-left:8px;">${escapeHtml(data.confidence_notes)}</span>` : ""}
+      </div>
+      <div class="va-colors" id="vab-colors-${key}"></div>
+      <div style="margin-top:20px;" class="va-type-grid" id="vab-type-${key}"></div>
+      <div style="margin-top:16px;" class="va-style-chips" id="vab-chips-${key}"></div>
+      <div style="margin-top:16px;" class="va-summary-box" id="vab-summary-${key}"></div>
+    </div>`;
+
+  document.getElementById(`vab-colors-${key}`).innerHTML =
+    (data.colors || []).map(c => `
+      <div class="va-swatch">
+        <div class="va-swatch-block" style="background:${escapeAttr(c.hex)};"></div>
+        <div class="va-swatch-hex">${escapeHtml(c.hex)}</div>
+        <div class="va-swatch-role">${escapeHtml(c.role || "")}${c.confidence && c.confidence !== "high" ? " " + vaConfidenceBadge(c.confidence) : ""}</div>
+        ${c.notes ? `<div class="va-swatch-notes">${escapeHtml(c.notes)}</div>` : ""}
+      </div>`).join("");
+
+  const typo = data.typography || {};
+  document.getElementById(`vab-type-${key}`).innerHTML =
+    [{ key: "heading", label: "Heading" }, { key: "body", label: "Body" }, { key: "accent", label: "Accent" }]
+    .map(({ key: k, label }) => {
+      const t = typo[k];
+      if (!t || (!t.family && !t.usage)) return "";
+      return `<div class="va-type-card">
+        <div class="va-type-label">${label}</div>
+        <div class="va-type-family">${escapeHtml(t.family || t.usage || "—")}</div>
+        <div class="va-type-detail">${escapeHtml([t.weight, t.style, t.usage].filter(Boolean).join(" · "))}</div>
+      </div>`;
+    }).join("");
+
+  document.getElementById(`vab-chips-${key}`).innerHTML =
+    (data.style || []).map(s => `<span class="va-style-chip">${escapeHtml(s)}</span>`).join("");
+  document.getElementById(`vab-summary-${key}`).textContent = data.summary || "";
+
+  // Generate banner button
+  const existing = document.getElementById(`vab-banner-btn-${key}`);
+  if (!existing) {
+    container.insertAdjacentHTML("beforeend", `
+      <div style="margin-top:20px;">
+        <button id="vab-banner-btn-${key}" onclick="generateBanner('${key}', true)" class="ghost">
+          Generate Closed Sign
+        </button>
+      </div>`);
+  }
+}
+
+async function vaCssFetchBrand(key) {
+  const brand = BRANDS[key];
+  if (!brand) return;
+  const tab = document.getElementById(`vab-${key}`);
+  if (tab) tab.classList.add("generating");
+  vaCssBrandCache[key] = { state: "loading" };
+
+  try {
+    const r = await fetch("/api/css-audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ url: brand.website }),
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" — "));
+    vaCssBrandCache[key] = { state: "done", data };
+    // If this brand tab is active, render immediately
+    const activeTab = document.querySelector('[id^="vab-"].active');
+    if (activeTab?.id === `vab-${key}`) vaRenderBrandResults(key, data);
+    // Auto-generate banner in background
+    generateBanner(key);
+  } catch (err) {
+    vaCssBrandCache[key] = { state: "error", error: err.message };
+    const activeTab = document.querySelector('[id^="vab-"].active');
+    if (activeTab?.id === `vab-${key}`) {
+      document.getElementById("va-brand-results").innerHTML =
+        `<div class="error-box" style="margin-top:16px;">${escapeHtml(err.message)}</div>`;
+    }
+  } finally {
+    if (tab) tab.classList.remove("generating");
+  }
+}
+
+async function vaCssGenerateAll() {
+  const btn = document.getElementById("va-gen-all-btn");
+  btn.disabled = true;
+  btn.textContent = "Generating…";
+  // Clear any active brand tab highlight
+  document.querySelectorAll('[id^="vab-"]').forEach(t => t.classList.remove("active"));
+  document.getElementById("va-brand-results").innerHTML =
+    `<div class="loading-note" style="margin-top:16px;"><span class="spinner"></span> Running all 5 brands in parallel…</div>`;
+  document.getElementById("va-results").classList.remove("open");
+
+  await Promise.allSettled(Object.keys(BRANDS).map(key => vaCssFetchBrand(key)));
+
+  // Show all results stacked
+  const container = document.getElementById("va-brand-results");
+  container.innerHTML = "";
+  for (const key of Object.keys(BRANDS)) {
+    const cached = vaCssBrandCache[key];
+    if (cached?.state === "done") {
+      // Append each brand result
+      const div = document.createElement("div");
+      container.appendChild(div);
+      const brand = BRANDS[key];
+      const data = cached.data;
+      div.innerHTML = `
+        <div style="margin-top:28px;padding-top:24px;border-top:2px solid var(--line);">
+          <div style="font-family:Georgia,serif;font-size:18px;font-weight:500;margin-bottom:4px;">${escapeHtml(brand.name)}</div>
+          <div style="font-size:12px;color:var(--muted);margin-bottom:14px;">${escapeHtml(brand.website)}${data.confidence ? " · " + vaConfidenceBadge(data.confidence) : ""}${data.confidence_notes ? ` <span style="font-size:11px;">${escapeHtml(data.confidence_notes)}</span>` : ""}</div>
+          <div class="va-colors" id="vaball-colors-${key}"></div>
+          <div style="margin-top:12px;" class="va-type-grid" id="vaball-type-${key}"></div>
+          <div style="margin-top:12px;" class="va-style-chips" id="vaball-chips-${key}"></div>
+          <div style="margin-top:12px;" class="va-summary-box" id="vaball-summary-${key}"></div>
+        </div>`;
+      document.getElementById(`vaball-colors-${key}`).innerHTML =
+        (data.colors || []).map(c => `
+          <div class="va-swatch">
+            <div class="va-swatch-block" style="background:${escapeAttr(c.hex)};"></div>
+            <div class="va-swatch-hex">${escapeHtml(c.hex)}</div>
+            <div class="va-swatch-role">${escapeHtml(c.role || "")}</div>
+          </div>`).join("");
+      document.getElementById(`vaball-type-${key}`).innerHTML =
+        Object.entries(data.typography || {}).map(([k, t]) =>
+          t && (t.family || t.usage) ? `<div class="va-type-card">
+            <div class="va-type-label">${k}</div>
+            <div class="va-type-family">${escapeHtml(t.family || t.usage || "—")}</div>
+            <div class="va-type-detail">${escapeHtml([t.weight, t.style].filter(Boolean).join(" · "))}</div>
+          </div>` : "").join("");
+      document.getElementById(`vaball-chips-${key}`).innerHTML =
+        (data.style || []).map(s => `<span class="va-style-chip">${escapeHtml(s)}</span>`).join("");
+      document.getElementById(`vaball-summary-${key}`).textContent = data.summary || "";
+      div.insertAdjacentHTML("beforeend", `
+        <div style="margin-top:16px;">
+          <button onclick="generateBanner('${key}', true)" class="ghost" style="font-size:13px;">
+            Generate Closed Sign
+          </button>
+        </div>`);
+    } else if (cached?.state === "error") {
+      const brand = BRANDS[key];
+      container.insertAdjacentHTML("beforeend",
+        `<div style="margin-top:20px;padding-top:20px;border-top:1px solid var(--line);">
+          <strong>${escapeHtml(brand.name)}</strong>
+          <div class="error-box" style="margin-top:8px;">${escapeHtml(cached.error)}</div>
+        </div>`);
+    }
+  }
+
+  btn.disabled = false;
+  btn.textContent = "Generate All";
+}
+
+// ---------- Visual Audit — URL (CSS) path ----------
+async function vaCssAnalyse() {
+  const input = document.getElementById("va-css-url");
+  const btn = document.getElementById("va-css-btn");
+  const status = document.getElementById("va-status");
+  const url = input.value.trim();
+  if (!url) { input.focus(); return; }
+
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = "Fetching CSS…";
+  status.innerHTML = `<div class="loading-note"><span class="spinner"></span> Fetching and analysing stylesheets — this takes a few seconds…</div>`;
+  document.getElementById("va-results").classList.remove("open");
+
+  try {
+    const r = await fetch("/api/css-audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ url }),
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error([data.error, data.detail].filter(Boolean).join(" — "));
+    // If a brand tab is active, cache + render inline; otherwise use shared results
+    const activeTab = document.querySelector('[id^="vab-"].active');
+    const brandKey = activeTab ? activeTab.id.replace("vab-", "") : null;
+    if (brandKey && BRANDS[brandKey]) {
+      vaCssBrandCache[brandKey] = { state: "done", data };
+      vaRenderBrandResults(brandKey, data);
+      generateBanner(brandKey);
+    } else {
+      vaRenderResults(data);
+    }
+    status.innerHTML = "";
+  } catch (err) {
+    status.innerHTML = `<div class="error-box">${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+// ---------- Visual Audit ----------
+let vaImageBase64 = null;
+let vaMediaType = "image/png";
+
+function vaSetImage(dataUrl, mime) {
+  vaImageBase64 = dataUrl.split(",")[1];
+  vaMediaType = mime || "image/png";
+  const preview = document.getElementById("va-preview");
+  const hint = document.getElementById("va-hint");
+  const zone = document.getElementById("va-paste-zone");
+  const actions = document.getElementById("va-actions");
+  preview.src = dataUrl;
+  preview.style.display = "block";
+  hint.style.display = "none";
+  zone.classList.add("has-image");
+  actions.style.display = "flex";
+  document.getElementById("va-results").classList.remove("open");
+  document.getElementById("va-status").innerHTML = "";
+}
+
+function vaClear() {
+  vaImageBase64 = null;
+  const preview = document.getElementById("va-preview");
+  const hint = document.getElementById("va-hint");
+  const zone = document.getElementById("va-paste-zone");
+  const actions = document.getElementById("va-actions");
+  preview.src = "";
+  preview.style.display = "none";
+  hint.style.display = "";
+  zone.classList.remove("has-image");
+  actions.style.display = "none";
+  document.getElementById("va-results").classList.remove("open");
+  document.getElementById("va-status").innerHTML = "";
+}
+
+function vaHandleFile(file) {
+  if (!file || !file.type.startsWith("image/")) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const img = new Image();
+    img.onload = () => {
+      // Downscale if needed so base64 stays under ~4MB
+      const MAX_PX = 1800;
+      const scale = Math.min(1, MAX_PX / Math.max(img.width, img.height));
+      const canvas = document.createElement("canvas");
+      canvas.width  = Math.round(img.width  * scale);
+      canvas.height = Math.round(img.height * scale);
+      canvas.getContext("2d").drawImage(img, 0, 0, canvas.width, canvas.height);
+      const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+      vaSetImage(dataUrl, "image/jpeg");
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+function vaHandleDrop(e) {
+  e.preventDefault();
+  document.getElementById("va-paste-zone").classList.remove("drag-over");
+  const file = e.dataTransfer.files?.[0];
+  if (file) { vaHandleFile(file); return; }
+  const item = [...(e.dataTransfer.items || [])].find(i => i.type.startsWith("image/"));
+  if (item) vaHandleFile(item.getAsFile());
+}
+
+document.addEventListener("paste", (e) => {
+  if (!document.getElementById("main-panel-visual").classList.contains("active")) return;
+  const item = [...(e.clipboardData?.items || [])].find(i => i.type.startsWith("image/"));
+  if (!item) return;
+  vaHandleFile(item.getAsFile());
+});
+
+async function vaAnalyse() {
+  if (!vaImageBase64) return;
+  const btn = document.getElementById("va-btn");
+  const status = document.getElementById("va-status");
+  const results = document.getElementById("va-results");
+  btn.disabled = true;
+  const orig = btn.textContent;
+  btn.textContent = "Analysing…";
+  status.innerHTML = `<div class="loading-note"><span class="spinner"></span> Analysing visual language…</div>`;
+  results.classList.remove("open");
+
+  try {
+    const r = await fetch("/api/visual-audit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-app-password": getPw() },
+      body: JSON.stringify({ image: vaImageBase64, mediaType: vaMediaType }),
+    });
+    if (r.status === 401) { sessionStorage.removeItem("pw"); lock(); return; }
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error || data.detail || "Analysis failed.");
+    vaRenderResults(data);
+    status.innerHTML = "";
+  } catch (err) {
+    status.innerHTML = `<div class="error-box">${escapeHtml(err.message)}</div>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = orig;
+  }
+}
+
+function vaConfidenceBadge(level) {
+  const map = { high: ["#3f6b3a", "#e6f0e5"], medium: ["#7a5c1a", "#f5edda"], low: ["#a33", "#fde8e8"] };
+  const [color, bg] = map[level] || map.medium;
+  return `<span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;background:${bg};color:${color};padding:2px 8px;border-radius:999px;">${level}</span>`;
+}
+
+function vaRenderResults(d) {
+  // Overall confidence banner
+  const confBar = document.getElementById("va-confidence-bar");
+  if (d.confidence) {
+    confBar.style.display = "flex";
+    confBar.style.cssText = "display:flex;align-items:center;gap:10px;margin-bottom:20px;background:var(--chip);border-radius:8px;padding:10px 14px;font-size:13px;";
+    confBar.innerHTML = `<span style="color:var(--muted);font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;">Confidence</span>
+      ${vaConfidenceBadge(d.confidence)}
+      ${d.confidence_notes ? `<span style="color:var(--muted);font-size:12px;">${escapeHtml(d.confidence_notes)}</span>` : ""}`;
+  } else {
+    confBar.style.display = "none";
+  }
+
+  // Colors
+  const colorsEl = document.getElementById("va-colors");
+  colorsEl.innerHTML = (d.colors || []).map(c => `
+    <div class="va-swatch">
+      <div class="va-swatch-block" style="background:${escapeAttr(c.hex)};"></div>
+      <div class="va-swatch-hex">${escapeHtml(c.hex)}</div>
+      <div class="va-swatch-role">${escapeHtml(c.role || "")}${c.confidence && c.confidence !== "high" ? " " + vaConfidenceBadge(c.confidence) : ""}</div>
+      ${c.notes ? `<div class="va-swatch-notes">${escapeHtml(c.notes)}</div>` : ""}
+    </div>`).join("");
+
+  // Typography
+  const typeEl = document.getElementById("va-type-grid");
+  const typo = d.typography || {};
+  const typeSlots = [
+    { key: "heading", label: "Heading" },
+    { key: "body",    label: "Body" },
+    { key: "accent",  label: "Accent / Label" },
+  ];
+  typeEl.innerHTML = typeSlots.map(({ key, label }) => {
+    const t = typo[key];
+    if (!t || (!t.family && !t.usage)) return "";
+    return `
+      <div class="va-type-card">
+        <div class="va-type-label">${label}</div>
+        <div class="va-type-family">${escapeHtml(t.family || t.usage || "—")}</div>
+        <div class="va-type-detail">${escapeHtml([t.weight, t.style, t.usage].filter(Boolean).join(" · "))}</div>
+      </div>`;
+  }).join("");
+
+  // Style chips
+  document.getElementById("va-style-chips").innerHTML =
+    (d.style || []).map(s => `<span class="va-style-chip">${escapeHtml(s)}</span>`).join("");
+
+  // Summary & layout
+  document.getElementById("va-summary").textContent = d.summary || "";
+  document.getElementById("va-layout").textContent = d.layout || "";
+
+  document.getElementById("va-results").classList.add("open");
+}
 </script>
 </body>
 </html>
